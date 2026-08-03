@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- Meta Tags, SEO, Open Graph, Twitter Cards -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>☕ Mi Barista Imusa - Calculadora y Recetas</title>
+    <meta name="description" content="La guía completa para tu cafetera Imusa Café City: calculadora inteligente, más de 300 recetas, temporizador y mucho más.">
+    <meta name="keywords" content="café, imusa, café city, recetas, calculadora, barista, colombiano">
+    <meta name="author" content="Mi Barista Imusa">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="☕ Mi Barista Imusa">
+    <meta property="og:description" content="La guía completa para tu cafetera Imusa Café City">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://tugithub.io/mi-barista-imusa">
+    <meta property="og:image" content="https://tugithub.io/mi-barista-imusa/assets/img/og-image.jpg">
+    <meta property="og:site_name" content="Mi Barista Imusa">
+    
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="☕ Mi Barista Imusa">
+    <meta name="twitter:description" content="La guía completa para tu cafetera Imusa Café City">
+    <meta name="twitter:image" content="https://tugithub.io/mi-barista-imusa/assets/img/og-image.jpg">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#6F4E37">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Preload critical assets -->
+    <link rel="preload" href="assets/img/coffee-bg.jpg" as="image">
+</head>
+<body>
+    <!-- App Shell -->
+    <div id="app" role="application" aria-label="Mi Barista Imusa">
+        <!-- Header -->
+        <header role="banner" class="app-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <button id="menuToggle" class="icon-btn" aria-label="Abrir menú" aria-expanded="false">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <span class="app-title">☕ Mi Barista Imusa</span>
+                </div>
+                <div class="header-right">
+                    <button id="themeToggle" class="icon-btn" aria-label="Cambiar tema">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                    </button>
+                    <button id="favoritesBtn" class="icon-btn" aria-label="Favoritos">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Navigation -->
+        <nav class="main-nav" role="navigation" aria-label="Navegación principal">
+            <div class="nav-scroll">
+                <button class="nav-item active" data-section="home">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    <span>Inicio</span>
+                </button>
+                <button class="nav-item" data-section="calculator">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+                        <line x1="8" y1="8" x2="16" y2="8"></line>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                        <line x1="8" y1="16" x2="12" y2="16"></line>
+                    </svg>
+                    <span>Calculadora</span>
+                </button>
+                <button class="nav-item" data-section="recipes">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Recetas</span>
+                </button>
+                <button class="nav-item" data-section="timer">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>Timer</span>
+                </button>
+                <button class="nav-item" data-section="guides">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                    <span>Guías</span>
+                </button>
+                <button class="nav-item" data-section="converter">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                    </svg>
+                    <span>Conversor</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content" role="main">
+            <!-- Home Section -->
+            <section id="home" class="section active" role="tabpanel" aria-label="Inicio">
+                <div class="home-container">
+                    <!-- Hero -->
+                    <div class="hero-card">
+                        <div class="hero-image">
+                            <img src="assets/img/coffee-bg.jpg" alt="Cafetera Imusa Café City" loading="lazy">
+                            <div class="hero-overlay">
+                                <h1>☕ Mi Barista Imusa</h1>
+                                <p>Tu guía completa para la Imusa Café City</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="quick-stats">
+                        <div class="stat-card">
+                            <span class="stat-icon">💧</span>
+                            <span class="stat-value">600 ml</span>
+                            <span class="stat-label">Capacidad</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-icon">🔄</span>
+                            <span class="stat-value">6</span>
+                            <span class="stat-label">Tazas</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-icon">📚</span>
+                            <span class="stat-value">300+</span>
+                            <span class="stat-label">Recetas</span>
+                        </div>
+                    </div>
+
+                    <!-- Coffee of the Day -->
+                    <div class="section-header">
+                        <h2>☕ Café del Día</h2>
+                        <span class="badge">Recomendado</span>
+                    </div>
+                    <div class="coffee-day-card" id="coffeeOfDay">
+                        <div class="coffee-day-content">
+                            <h3>Tinto Suave Antioqueño</h3>
+                            <p>📊 200 ml | 1¼ cucharas | Suave</p>
+                            <div class="coffee-day-tags">
+                                <span class="tag">Colombia</span>
+                                <span class="tag">5 min</span>
+                                <span class="tag">Fácil</span>
+                            </div>
+                            <button class="btn-primary" onclick="navigateTo('recipes')">Ver receta</button>
+                        </div>
+                    </div>
+
+                    <!-- Recent Recipes -->
+                    <div class="section-header">
+                        <h2>📖 Últimas Recetas Vistas</h2>
+                    </div>
+                    <div class="recipe-list" id="recentRecipes">
+                        <!-- Dynamically populated -->
+                    </div>
+
+                    <!-- Popular Recipes -->
+                    <div class="section-header">
+                        <h2>⭐ Recetas Populares</h2>
+                    </div>
+                    <div class="recipe-grid" id="popularRecipes">
+                        <!-- Dynamically populated -->
+                    </div>
+
+                    <!-- Favorite Brands -->
+                    <div class="section-header">
+                        <h2>🏷️ Marcas Colombianas</h2>
+                    </div>
+                    <div class="brands-scroll" id="brandsList">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Calculator Section -->
+            <section id="calculator" class="section" role="tabpanel" aria-label="Calculadora">
+                <div class="calculator-container">
+                    <h2>🧮 Calculadora Inteligente</h2>
+                    
+                    <!-- Water Amount -->
+                    <div class="form-group">
+                        <label for="waterAmount">Cantidad de agua (ml)</label>
+                        <div class="water-presets" id="waterPresets">
+                            <button class="preset-btn" data-value="100">100</button>
+                            <button class="preset-btn" data-value="150">150</button>
+                            <button class="preset-btn" data-value="180">180</button>
+                            <button class="preset-btn" data-value="200">200</button>
+                            <button class="preset-btn" data-value="250">250</button>
+                            <button class="preset-btn" data-value="300">300</button>
+                            <button class="preset-btn" data-value="350">350</button>
+                            <button class="preset-btn" data-value="380">380</button>
+                            <button class="preset-btn" data-value="400">400</button>
+                            <button class="preset-btn" data-value="450">450</button>
+                            <button class="preset-btn" data-value="500">500</button>
+                            <button class="preset-btn" data-value="550">550</button>
+                            <button class="preset-btn" data-value="600">600</button>
+                        </div>
+                        <input type="range" id="waterSlider" min="100" max="600" value="250" step="10">
+                        <div class="range-labels">
+                            <span>100 ml</span>
+                            <span id="waterDisplay">250 ml</span>
+                            <span>600 ml</span>
+                        </div>
+                    </div>
+
+                    <!-- Strength -->
+                    <div class="form-group">
+                        <label>Intensidad</label>
+                        <div class="strength-selector">
+                            <button class="strength-btn" data-value="suave">☕ Suave</button>
+                            <button class="strength-btn active" data-value="normal">☕ Normal</button>
+                            <button class="strength-btn" data-value="fuerte">☕ Fuerte</button>
+                        </div>
+                    </div>
+
+                    <!-- Results -->
+                    <div class="calculator-results" id="calcResults">
+                        <div class="result-card">
+                            <span class="result-label">Café</span>
+                            <span class="result-value" id="coffeeSpoons">1½ cucharas</span>
+                            <span class="result-sub" id="coffeeGrams">9 g</span>
+                        </div>
+                        <div class="result-card">
+                            <span class="result-label">Cafeína</span>
+                            <span class="result-value" id="caffeineAmount">~60 mg</span>
+                        </div>
+                        <div class="result-card">
+                            <span class="result-label">Azúcar</span>
+                            <span class="result-value" id="sugarAmount">1 cucharadita</span>
+                        </div>
+                        <div class="result-card">
+                            <span class="result-label">Tiempo</span>
+                            <span class="result-value" id="brewTime">~4 min</span>
+                        </div>
+                    </div>
+
+                    <!-- Custom Calculator -->
+                    <div class="custom-calculator">
+                        <h3>📝 Calculadora Personalizada</h3>
+                        <div class="custom-input-group">
+                            <input type="number" id="customWater" placeholder="Ingresa ml (100-600)" min="100" max="600">
+                            <button id="calculateCustom" class="btn-primary">Calcular</button>
+                        </div>
+                        <div id="customResult" class="custom-result">
+                            <p>Esperando entrada...</p>
+                        </div>
+                    </div>
+
+                    <!-- Instant Coffee -->
+                    <div class="instant-calculator">
+                        <h3>☕ Café Instantáneo</h3>
+                        <div class="form-group">
+                            <label for="instantBrand">Marca</label>
+                            <select id="instantBrand">
+                                <option value="nescafe">Nescafé</option>
+                                <option value="colcafe">Colcafé</option>
+                                <option value="juanvaldez">Juan Valdez</option>
+                                <option value="buendia">Buendía</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="instantWater">Agua (ml)</label>
+                            <input type="range" id="instantWater" min="100" max="600" value="200" step="10">
+                            <span id="instantWaterDisplay">200 ml</span>
+                        </div>
+                        <div class="result-card">
+                            <span class="result-label">Café instantáneo</span>
+                            <span class="result-value" id="instantResult">2 cucharaditas</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recipes Section -->
+            <section id="recipes" class="section" role="tabpanel" aria-label="Recetas">
+                <div class="recipes-container">
+                    <div class="recipes-header">
+                        <h2>📖 Recetario</h2>
+                        <div class="search-box">
+                            <input type="text" id="recipeSearch" placeholder="🔍 Buscar recetas..." aria-label="Buscar recetas">
+                        </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="filter-section">
+                        <div class="filter-scroll">
+                            <button class="filter-btn active" data-filter="all">Todas</button>
+                            <button class="filter-btn" data-filter="instant">☕ Instantáneo</button>
+                            <button class="filter-btn" data-filter="ground">🔄 Molido</button>
+                            <button class="filter-btn" data-filter="colombian">🇨🇴 Colombiano</button>
+                            <button class="filter-btn" data-filter="cold">❄️ Frío</button>
+                            <button class="filter-btn" data-filter="hot">🔥 Caliente</button>
+                            <button class="filter-btn" data-filter="sweet">🍯 Dulce</button>
+                            <button class="filter-btn" data-filter="nosugar">🚫 Sin azúcar</button>
+                            <button class="filter-btn" data-filter="vegan">🌱 Vegano</button>
+                        </div>
+                    </div>
+
+                    <!-- Category Tabs -->
+                    <div class="category-tabs">
+                        <button class="category-tab active" data-category="all">📚 Todas</button>
+                        <button class="category-tab" data-category="colombiano">🇨🇴 Cafés Colombianos</button>
+                        <button class="category-tab" data-category="latte">🥛 Lattes</button>
+                        <button class="category-tab" data-category="mocha">🍫 Mochas</button>
+                        <button class="category-tab" data-category="frappe">🧊 Frappés</button>
+                        <button class="category-tab" data-category="helado">🍦 Helados</button>
+                        <button class="category-tab" data-category="canela">🌿 Canela</button>
+                        <button class="category-tab" data-category="chocolate">🍫 Chocolate</button>
+                        <button class="category-tab" data-category="panela">🍯 Panela</button>
+                        <button class="category-tab" data-category="miel">🍯 Miel</button>
+                        <button class="category-tab" data-category="vegano">🌱 Vegano</button>
+                        <button class="category-tab" data-category="fitness">💪 Fitness</button>
+                        <button class="category-tab" data-category="instantaneo">☕ Instantáneo</button>
+                        <button class="category-tab" data-category="navidad">🎄 Navidad</button>
+                        <button class="category-tab" data-category="internacional">🌍 Internacionales</button>
+                    </div>
+
+                    <!-- Recipe Grid -->
+                    <div class="recipe-grid" id="recipeGrid">
+                        <!-- Dynamically populated -->
+                    </div>
+
+                    <!-- Recipe Modal -->
+                    <div id="recipeModal" class="modal" role="dialog" aria-label="Detalles de la receta">
+                        <div class="modal-content">
+                            <button class="modal-close" aria-label="Cerrar">&times;</button>
+                            <div id="recipeDetail">
+                                <!-- Dynamically populated -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Timer Section -->
+            <section id="timer" class="section" role="tabpanel" aria-label="Temporizador">
+                <div class="timer-container">
+                    <h2>⏱️ Temporizador</h2>
+                    <div class="timer-display">
+                        <span id="timerMinutes">00</span>
+                        <span>:</span>
+                        <span id="timerSeconds">00</span>
+                    </div>
+                    <div class="timer-presets">
+                        <button class="timer-preset" data-seconds="60">1 min</button>
+                        <button class="timer-preset" data-seconds="120">2 min</button>
+                        <button class="timer-preset" data-seconds="180">3 min</button>
+                        <button class="timer-preset" data-seconds="240">4 min</button>
+                        <button class="timer-preset" data-seconds="300">5 min</button>
+                    </div>
+                    <div class="timer-controls">
+                        <button id="timerStart" class="btn-primary">▶ Iniciar</button>
+                        <button id="timerPause" class="btn-secondary">⏸ Pausar</button>
+                        <button id="timerReset" class="btn-secondary">⏹ Reiniciar</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Guides Section -->
+            <section id="guides" class="section" role="tabpanel" aria-label="Guías">
+                <div class="guides-container">
+                    <h2>📚 Guías y Consejos</h2>
+                    <div class="guides-grid" id="guidesGrid">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Converter Section -->
+            <section id="converter" class="section" role="tabpanel" aria-label="Conversor">
+                <div class="converter-container">
+                    <h2>🔄 Conversor de Medidas</h2>
+                    <div class="converter-form">
+                        <div class="form-group">
+                            <label for="converterValue">Valor</label>
+                            <input type="number" id="converterValue" placeholder="Ingresa el número" step="any">
+                        </div>
+                        <div class="form-group">
+                            <label for="converterFrom">De</label>
+                            <select id="converterFrom">
+                                <option value="ml">Mililitros (ml)</option>
+                                <option value="g">Gramos (g)</option>
+                                <option value="tbsp">Cucharadas</option>
+                                <option value="tsp">Cucharaditas</option>
+                                <option value="oz">Onzas (oz)</option>
+                                <option value="cup">Tazas</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="converterTo">A</label>
+                            <select id="converterTo">
+                                <option value="ml">Mililitros (ml)</option>
+                                <option value="g">Gramos (g)</option>
+                                <option value="tbsp">Cucharadas</option>
+                                <option value="tsp">Cucharaditas</option>
+                                <option value="oz">Onzas (oz)</option>
+                                <option value="cup">Tazas</option>
+                            </select>
+                        </div>
+                        <button id="converterBtn" class="btn-primary">Convertir</button>
+                        <div id="converterResult" class="converter-result">
+                            <p>Esperando conversión...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer" role="contentinfo">
+            <p>☕ Mi Barista Imusa - Hecho con ❤️ para los amantes del café</p>
+            <p class="footer-small">Imusa Café City | Capacidad 600 ml | Filtro permanente</p>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
