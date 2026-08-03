@@ -829,4 +829,218 @@
             }
 
             // ========================================
-            // DESCARG
+            // DESCARGAR COMO ZIP (usando JSZip)
+            // ========================================
+            async downloadAsZip() {
+                const JSZip = window.JSZip;
+                if (!JSZip) {
+                    // Cargar JSZip desde CDN
+                    await this.loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+                    return this.downloadAsZip();
+                }
+
+                const zip = new JSZip();
+                
+                // Agregar íconos
+                Object.keys(this.icons).forEach(size => {
+                    const data = this.icons[size].split(',')[1];
+                    zip.file(`assets/icons/icon-${size}.png`, data, { base64: true });
+                });
+
+                // Agregar imágenes
+                Object.keys(this.images).forEach(name => {
+                    const data = this.images[name].split(',')[1];
+                    const ext = name.includes('og') ? 'jpg' : 'jpg';
+                    zip.file(`assets/img/${name}.${ext}`, data, { base64: true });
+                });
+
+                // Agregar README
+                zip.file('README-assets.md', `
+# Assets para Mi Barista Imusa
+
+Este archivo contiene todos los assets generados automáticamente.
+
+## Estructura
+\`\`\`
+assets/
+├── icons/
+│   ├── icon-72.png
+│   ├── icon-96.png
+│   ├── icon-128.png
+│   ├── icon-144.png
+│   ├── icon-152.png
+│   ├── icon-192.png
+│   ├── icon-384.png
+│   └── icon-512.png
+└── img/
+    ├── coffee-bg.jpg
+    └── og-image.jpg
+\`\`\`
+
+Todos los archivos fueron generados usando Canvas en el navegador.
+                `);
+
+                const blob = await zip.generateAsync({ type: 'blob' });
+                const link = document.createElement('a');
+                link.download = 'imusa-assets.zip';
+                link.href = URL.createObjectURL(blob);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
+            // ========================================
+            // CARGAR SCRIPT EXTERNO
+            // ========================================
+            loadScript(src) {
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = src;
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+            }
+        }
+
+        // ========================================
+        // INTERFAZ DE USUARIO
+        // ========================================
+        const generator = new AssetGenerator();
+        let generated = false;
+
+        function updateStats() {
+            const iconCount = Object.keys(generator.icons).length;
+            const imageCount = Object.keys(generator.images).length;
+            const totalSize = Math.round(generator.totalSize / 1024);
+            
+            document.getElementById('iconCount').textContent = iconCount;
+            document.getElementById('imageCount').textContent = imageCount;
+            document.getElementById('totalSize').textContent = totalSize + ' KB';
+        }
+
+        function generateAll() {
+            const status = document.getElementById('status');
+            const progress = document.getElementById('progress');
+            const progressFill = document.getElementById('progressFill');
+            const iconGrid = document.getElementById('iconGrid');
+            const imageGrid = document.getElementById('imageGrid');
+
+            status.innerHTML = '⏳ Generando assets...';
+            progress.classList.remove('hidden');
+            iconGrid.innerHTML = '';
+            imageGrid.innerHTML = '';
+
+            // Generar todos los assets
+            const result = generator.generateAll();
+            generated = true;
+
+            // Mostrar íconos
+            const sizes = Object.keys(generator.icons);
+            sizes.forEach((size, index) => {
+                const percent = ((index + 1) / sizes.length) * 100;
+                progressFill.style.width = `${percent}%`;
+
+                const item = document.createElement('div');
+                item.className = 'icon-item';
+                
+                const img = document.createElement('img');
+                img.src = generator.icons[size];
+                img.width = Math.min(parseInt(size), 96);
+                img.height = Math.min(parseInt(size), 96);
+                img.alt = `Ícono ${size}x${size}`;
+
+                const sizeLabel = document.createElement('div');
+                sizeLabel.className = 'size';
+                sizeLabel.textContent = `${size}x${size}`;
+
+                const downloadBtn = document.createElement('button');
+                downloadBtn.className = 'download-btn';
+                downloadBtn.textContent = '📥 Descargar';
+                downloadBtn.onclick = () => {
+                    generator.downloadFile(generator.icons[size], `icon-${size}.png`);
+                };
+
+                item.appendChild(img);
+                item.appendChild(sizeLabel);
+                item.appendChild(downloadBtn);
+                iconGrid.appendChild(item);
+            });
+
+            // Mostrar imágenes
+            const imgNames = Object.keys(generator.images);
+            imgNames.forEach((name, index) => {
+                const card = document.createElement('div');
+                card.className = 'img-card';
+                
+                const img = document.createElement('img');
+                img.src = generator.images[name];
+                img.alt = name;
+                
+                const nameLabel = document.createElement('div');
+                nameLabel.className = 'name';
+                const ext = name.includes('og') ? 'jpg' : 'jpg';
+                nameLabel.textContent = `${name}.${ext}`;
+
+                const downloadBtn = document.createElement('button');
+                downloadBtn.className = 'download-btn';
+                downloadBtn.textContent = '📥 Descargar';
+                downloadBtn.style.marginTop = '8px';
+                downloadBtn.onclick = () => {
+                    generator.downloadFile(generator.images[name], `${name}.${ext}`);
+                };
+
+                card.appendChild(img);
+                card.appendChild(nameLabel);
+                card.appendChild(downloadBtn);
+                imageGrid.appendChild(card);
+            });
+
+            status.innerHTML = '✅ ¡Todos los assets generados con éxito!';
+            progressFill.style.width = '100%';
+            setTimeout(() => {
+                progress.classList.add('hidden');
+            }, 500);
+
+            updateStats();
+        }
+
+        function downloadAll() {
+            if (!generated || Object.keys(generator.icons).length === 0) {
+                alert('⚠️ Primero genera los assets haciendo clic en "Generar Todos los Assets"');
+                return;
+            }
+            generator.downloadAll();
+            document.getElementById('status').innerHTML = '📥 Descargando todos los archivos...';
+        }
+
+        function downloadAsZip() {
+            if (!generated || Object.keys(generator.icons).length === 0) {
+                alert('⚠️ Primero genera los assets haciendo clic en "Generar Todos los Assets"');
+                return;
+            }
+            document.getElementById('status').innerHTML = '📦 Generando archivo ZIP...';
+            generator.downloadAsZip().then(() => {
+                document.getElementById('status').innerHTML = '✅ ZIP generado con éxito';
+            });
+        }
+
+        function clearAll() {
+            document.getElementById('iconGrid').innerHTML = '';
+            document.getElementById('imageGrid').innerHTML = '';
+            document.getElementById('status').innerHTML = '🗑️ Assets eliminados';
+            generator.icons = {};
+            generator.images = {};
+            generator.totalSize = 0;
+            generated = false;
+            updateStats();
+            document.getElementById('progress').classList.add('hidden');
+        }
+
+        // Generar automáticamente al cargar
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(generateAll, 500);
+        });
+    </script>
+</body>
+</html>
