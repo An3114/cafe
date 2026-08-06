@@ -1146,7 +1146,6 @@ input[type="range"]::-moz-range-thumb {
         page-break-inside: avoid;
     }
 }
-
 /* ========================================
    NUEVOS ESTILOS - ANÁLISIS Y COSTO
    ======================================== */
@@ -1657,4 +1656,3 @@ input[type="range"]::-moz-range-thumb {
 [data-theme="dark"] .strength-fill {
     background: linear-gradient(90deg, #A0806A, #8B6B4F, #6F4E37);
 }
-
