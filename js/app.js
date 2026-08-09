@@ -20,6 +20,10 @@
         }
     };
 
+    // Acumulador del análisis con báscula: café real ya pesado (sin el peso de la cuchara)
+    let accumulatedCoffee = 0;
+    let scoopHistory = []; // guarda cada pesada individual para poder deshacer la última
+
     // ========================================
     // UTILIDADES
     // ========================================
@@ -81,6 +85,7 @@
         renderRecipes();
         renderGuides();
         updateInstantCoffee();
+        updateAccumulatedDisplay();
         analyzeWithScale(); // Análisis automático al cargar
         console.log('✅ Aplicación iniciada correctamente');
     }
@@ -128,9 +133,15 @@
             updateCalculator();
         });
 
-        document.querySelectorAll('.strength-btn:not(.instant-strength .strength-btn):not(#scaleStrengthSelector .strength-btn)').forEach(btn => {
+        document.querySelectorAll('.strength-selector .strength-btn').forEach(btn => {
+            // Excluir los selectores de café instantáneo y de análisis (tienen su propio binding)
+            if (btn.closest('.instant-strength') || btn.closest('#scaleStrengthSelector')) return;
             btn.addEventListener('click', function() {
-                document.querySelectorAll('.strength-btn:not(.instant-strength .strength-btn):not(#scaleStrengthSelector .strength-btn)').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.strength-selector .strength-btn').forEach(b => {
+                    if (!b.closest('.instant-strength') && !b.closest('#scaleStrengthSelector')) {
+                        b.classList.remove('active');
+                    }
+                });
                 this.classList.add('active');
                 AppState.calculator.strength = this.dataset.value;
                 updateCalculator();
@@ -167,26 +178,39 @@
             analyzeWithScale();
         });
 
-        // Botones de cuchara
+        // ➕ Añadir cuchara: toma lo pesado ahora (café + cuchara), resta 7g,
+        // lo suma al acumulado y reinicia el campo a 0 para pesar la siguiente cucharada.
         document.querySelector('.spoon-btn[data-action="add"]')?.addEventListener('click', function() {
             const input = document.getElementById('totalWeight');
-            let value = parseFloat(input.value) || 0;
-            value = Math.round((value + 7) * 10) / 10;
-            input.value = value;
+            const weighed = parseFloat(input.value) || 0;
+            const spoonWeight = COFFEE_STANDARDS.imusa.spoon_grams;
+
+            let coffeeFromScoop = Math.round((weighed - spoonWeight) * 10) / 10;
+            if (coffeeFromScoop < 0) coffeeFromScoop = 0;
+
+            scoopHistory.push(coffeeFromScoop);
+            accumulatedCoffee = Math.round((accumulatedCoffee + coffeeFromScoop) * 10) / 10;
+
+            input.value = 0; // listo para la siguiente pesada
+            updateAccumulatedDisplay();
             analyzeWithScale();
         });
 
+        // ➖ Quitar última: deshace la última pesada añadida al acumulado
         document.querySelector('.spoon-btn[data-action="remove"]')?.addEventListener('click', function() {
-            const input = document.getElementById('totalWeight');
-            let value = parseFloat(input.value) || 0;
-            value = Math.round((Math.max(7, value - 7)) * 10) / 10;
-            input.value = value;
+            if (scoopHistory.length === 0) return;
+            const last = scoopHistory.pop();
+            accumulatedCoffee = Math.round(Math.max(0, accumulatedCoffee - last) * 10) / 10;
+            updateAccumulatedDisplay();
             analyzeWithScale();
         });
 
+        // 🔄 Reiniciar: borra todo el acumulado y el campo
         document.querySelector('.spoon-btn[data-action="reset"]')?.addEventListener('click', function() {
-            const input = document.getElementById('totalWeight');
-            input.value = 12;
+            accumulatedCoffee = 0;
+            scoopHistory = [];
+            document.getElementById('totalWeight').value = 0;
+            updateAccumulatedDisplay();
             analyzeWithScale();
         });
 
@@ -327,28 +351,50 @@
     }
 
     // ========================================
-    // ANÁLISIS CON BÁSCULA (MEJORADO)
+    // ACUMULADOR DE CUCHARAS (ANÁLISIS)
+    // ========================================
+    function updateAccumulatedDisplay() {
+        const spoons = CoffeeMath.gramsToSpoons(accumulatedCoffee);
+        const gramsEl = document.getElementById('accumulatedGrams');
+        const spoonsEl = document.getElementById('accumulatedSpoons');
+        const countEl = document.getElementById('accumulatedCount');
+        if (gramsEl) gramsEl.textContent = accumulatedCoffee.toFixed(1);
+        if (spoonsEl) spoonsEl.textContent = CoffeeMath.formatSpoon(spoons);
+        if (countEl) countEl.textContent = scoopHistory.length;
+    }
+
+    // ========================================
+    // ANÁLISIS CON BÁSCULA (MEJORADO - CON ACUMULADOR)
     // ========================================
     function analyzeWithScale() {
         const totalWeight = parseFloat(document.getElementById('totalWeight').value);
         const water = parseInt(document.getElementById('scaleWater').value) || 250;
         const brandId = document.getElementById('scaleBrand').value || 'tostao';
-        
+
         const activeStrength = document.querySelector('#scaleStrengthSelector .strength-btn.active');
         const strength = activeStrength ? activeStrength.dataset.value : 'normal';
 
-        if (isNaN(totalWeight) || totalWeight <= 7) {
+        const spoonWeight = COFFEE_STANDARDS.imusa.spoon_grams;
+
+        // Si hay café acumulado (se usó "Añadir cuchara"), usa ese total.
+        // Si no, usa el modo clásico: lo que hay en el campo menos el peso de una cuchara.
+        let coffeeGrams;
+        let usingAccumulated = accumulatedCoffee > 0;
+
+        if (usingAccumulated) {
+            coffeeGrams = accumulatedCoffee;
+        } else {
+            coffeeGrams = totalWeight - spoonWeight;
+        }
+
+        if (!usingAccumulated && (isNaN(totalWeight) || totalWeight <= spoonWeight)) {
             document.getElementById('scaleResult').innerHTML = `
                 <div class="analysis-card" style="border-left-color:var(--danger-color);">
-                    <p style="color:var(--danger-color);">⚠️ Ingresa un peso total mayor a 7g (peso de la cuchara).</p>
+                    <p style="color:var(--danger-color);">⚠️ Pesa una cucharada (café + cuchara) y presiona "➕ Añadir cuchara", o ingresa un peso mayor a ${spoonWeight}g.</p>
                 </div>
             `;
             return;
         }
-
-        const brand = CoffeeMath.getBrand(brandId);
-        const spoonWeight = COFFEE_STANDARDS.imusa.spoon_grams;
-        const coffeeGrams = totalWeight - spoonWeight;
 
         if (coffeeGrams <= 0) {
             document.getElementById('scaleResult').innerHTML = `
@@ -358,6 +404,8 @@
             `;
             return;
         }
+
+        const brand = CoffeeMath.getBrand(brandId);
 
         const strengthFactors = {
             suave: { ratio: 18, label: 'Suave', desc: 'Café ligero, ideal para paladares delicados' },
@@ -374,32 +422,17 @@
         const diffSpoons = CoffeeMath.gramsToSpoons(Math.abs(diff));
         const ratio = Math.round((water / coffeeGrams) * 10) / 10;
 
-        let realStrength = '', realLevel = '', realColor = '', realEmoji = '☕', strengthClass = '';
+        let realStrength = '', realColor = '', realEmoji = '☕', strengthClass = '';
         if (ratio >= 20) {
-            realStrength = 'Muy Suave';
-            realLevel = 'muy-suave';
-            realColor = '#0d47a1';
-            strengthClass = 'muy-suave';
+            realStrength = 'Muy Suave'; realColor = '#0d47a1'; strengthClass = 'muy-suave';
         } else if (ratio >= 17) {
-            realStrength = 'Suave';
-            realLevel = 'suave';
-            realColor = '#2e7d32';
-            strengthClass = 'suave';
+            realStrength = 'Suave'; realColor = '#2e7d32'; strengthClass = 'suave';
         } else if (ratio >= 14.5) {
-            realStrength = 'Normal';
-            realLevel = 'normal';
-            realColor = '#e65100';
-            strengthClass = 'normal';
+            realStrength = 'Normal'; realColor = '#e65100'; strengthClass = 'normal';
         } else if (ratio >= 12) {
-            realStrength = 'Fuerte';
-            realLevel = 'fuerte';
-            realColor = '#bf360c';
-            strengthClass = 'fuerte';
+            realStrength = 'Fuerte'; realColor = '#bf360c'; strengthClass = 'fuerte';
         } else {
-            realStrength = 'Muy Fuerte';
-            realLevel = 'muy-fuerte';
-            realColor = '#880e4f';
-            strengthClass = 'muy-fuerte';
+            realStrength = 'Muy Fuerte'; realColor = '#880e4f'; strengthClass = 'muy-fuerte';
         }
 
         let status = '', statusIcon = '', message = '', diffBadge = '';
@@ -428,6 +461,13 @@
         const minRatio = 10, maxRatio = 22;
         const strengthPercent = Math.max(0, Math.min(100, ((ratio - minRatio) / (maxRatio - minRatio)) * 100));
 
+        const coffeeSpoons = coffeeGrams / spoonWeight;
+        const coffeeSpoonsDisplay = CoffeeMath.formatSpoon(coffeeSpoons);
+
+        const sourceNote = usingAccumulated
+            ? `<span style="font-size:0.75rem; color:var(--text-muted);">Calculado con ${scoopHistory.length} pesada${scoopHistory.length > 1 ? 's' : ''} acumulada${scoopHistory.length > 1 ? 's' : ''}.</span>`
+            : '';
+
         document.getElementById('scaleResult').innerHTML = `
             <div class="analysis-card">
                 <div class="analysis-status" style="border-left-color:${realColor};">
@@ -436,12 +476,8 @@
 
                 <div class="analysis-info">
                     <div class="info-item">
-                        <span class="info-label">⚖️ Peso total</span>
-                        <span class="info-value">${totalWeight}g (café + cuchara)</span>
-                    </div>
-                    <div class="info-item">
                         <span class="info-label">☕ Café real</span>
-                        <span class="info-value">${coffeeGrams}g ≈ ${CoffeeMath.formatSpoon(coffeeGrams/7)} cucharas</span>
+                        <span class="info-value">${coffeeGrams.toFixed(1)}g ≈ ${coffeeSpoonsDisplay} cucharas</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">💧 Agua</span>
@@ -450,6 +486,10 @@
                     <div class="info-item">
                         <span class="info-label">📊 Relación</span>
                         <span class="info-value">1:${ratio}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">🥄 Cucharadas pesadas</span>
+                        <span class="info-value">${usingAccumulated ? scoopHistory.length : 1}</span>
                     </div>
                 </div>
 
@@ -473,8 +513,8 @@
                 <div class="analysis-compare">
                     <div class="compare-item">
                         <span class="compare-label">Tu preparación</span>
-                        <span class="compare-value">${coffeeGrams}g</span>
-                        <span class="compare-sub">≈ ${CoffeeMath.formatSpoon(coffeeGrams/7)} cucharas</span>
+                        <span class="compare-value">${coffeeGrams.toFixed(1)}g</span>
+                        <span class="compare-sub">≈ ${coffeeSpoonsDisplay} cucharas</span>
                     </div>
                     <div class="compare-arrow">→</div>
                     <div class="compare-item recommended">
@@ -487,7 +527,7 @@
                 <div style="display:flex; justify-content:center; gap:16px; margin:8px 0; flex-wrap:wrap;">
                     ${diffBadge}
                     <span style="font-size:0.85rem; color:var(--text-muted);">
-                        ${diff > 0 ? '➕' : '➖'} ${Math.abs(diff).toFixed(1)}g 
+                        ${diff > 0 ? '➕' : '➖'} ${Math.abs(diff).toFixed(1)}g
                         ≈ ${CoffeeMath.formatSpoon(diffSpoons)} cuchara${diffSpoons > 1 ? 's' : ''}
                     </span>
                 </div>
@@ -506,11 +546,13 @@
                 </div>
 
                 <div class="analysis-tip">
-                    💡 La cuchara IMUSA pesa 7g. El peso real de café = peso total - 7g.
+                    💡 La cuchara IMUSA pesa ${spoonWeight}g. Cada vez que presionas "Añadir cuchara" se resta ese peso y se suma el café real al acumulado.
                     <br>
                     <span style="font-size:0.75rem; color:var(--text-muted);">
                         Marca: ${brand.name} | Intensidad: ${brand.intensity}/10
                     </span>
+                    <br>
+                    ${sourceNote}
                 </div>
             </div>
         `;
@@ -609,7 +651,7 @@
                     <h4>${recipe.name}</h4>
                     <p>${recipe.time} min • ${recipe.difficulty}</p>
                 </div>
-                <button class="favorite-btn ${AppState.favorites.includes(recipe.id) ? 'active' : ''}" 
+                <button class="favorite-btn ${AppState.favorites.includes(recipe.id) ? 'active' : ''}"
                         onclick="event.stopPropagation(); window.toggleFavorite('${recipe.id}')">♥</button>
             </div>
         `).join('');
@@ -648,7 +690,7 @@
                     <h4>${recipe.name}</h4>
                     <p>${recipe.time} min • ${recipe.difficulty}</p>
                 </div>
-                <button class="favorite-btn ${AppState.favorites.includes(recipe.id) ? 'active' : ''}" 
+                <button class="favorite-btn ${AppState.favorites.includes(recipe.id) ? 'active' : ''}"
                         onclick="event.stopPropagation(); window.toggleFavorite('${recipe.id}')">♥</button>
             </div>
         `).join('');
