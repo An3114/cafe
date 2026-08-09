@@ -1,98 +1,20 @@
 {
   "name": "Mi Barista Imusa - Tu guía profesional para cafeteras Imusa",
   "short_name": "Barista Imusa",
-  "description": "Calculadora inteligente, análisis de preparación, recetas y guías para tu Imusa Café City. Basado en estándares SCA.",
+  "description": "Calculadora inteligente, análisis de preparación, recetas y guías para tu Imusa Café City.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
   "theme_color": "#6F4E37",
   "background_color": "#f5f0eb",
-  "categories": ["food", "lifestyle", "utility"],
-  "lang": "es",
-  "dir": "ltr",
   "icons": [
-    {
-      "src": "assets/icons/icon-72.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "assets/icons/icon-96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "assets/icons/icon-128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "assets/icons/icon-144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "assets/icons/icon-152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "assets/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "assets/icons/icon-384.png",
-      "sizes": "384x384",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "assets/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "assets/img/screenshot-mobile.png",
-      "sizes": "1080x1920",
-      "type": "image/png"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Calculadora",
-      "short_name": "Calcular",
-      "description": "Abre la calculadora de café",
-      "url": "/#calculator",
-      "icons": [
-        {
-          "src": "assets/icons/icon-96.png",
-          "sizes": "96x96"
-        }
-      ]
-    },
-    {
-      "name": "Recetas",
-      "short_name": "Recetas",
-      "description": "Explora las recetas de café",
-      "url": "/#recipes",
-      "icons": [
-        {
-          "src": "assets/icons/icon-96.png",
-          "sizes": "96x96"
-        }
-      ]
-    }
-  ],
-  "related_applications": [],
-  "prefer_related_applications": false
+    { "src": "assets/icons/icon-72.png", "sizes": "72x72", "type": "image/png" },
+    { "src": "assets/icons/icon-96.png", "sizes": "96x96", "type": "image/png" },
+    { "src": "assets/icons/icon-128.png", "sizes": "128x128", "type": "image/png" },
+    { "src": "assets/icons/icon-144.png", "sizes": "144x144", "type": "image/png" },
+    { "src": "assets/icons/icon-152.png", "sizes": "152x152", "type": "image/png" },
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icons/icon-384.png", "sizes": "384x384", "type": "image/png" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
 }
