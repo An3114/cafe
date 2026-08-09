@@ -536,22 +536,22 @@ const CoffeeMath = {
         const spoons = this.gramsToSpoons(coffeeGrams);
 
         let strength = '', level = '', color = '', emoji = '☕';
-        if (ratio >= 18) { strength = 'Muy Suave'; level = 'muy_suave'; color = '#8B6B4F'; }
-        else if (ratio >= 16) { strength = 'Suave'; level = 'suave'; color = '#A0806A'; }
-        else if (ratio >= 14) { strength = 'Normal'; level = 'normal'; color = '#6F4E37'; }
-        else if (ratio >= 12) { strength = 'Fuerte'; level = 'fuerte'; color = '#4A3228'; }
-        else { strength = 'Muy Fuerte'; level = 'muy_fuerte'; color = '#2C1810'; }
+        if (ratio >= 20) { strength = 'Muy Suave'; level = 'muy-suave'; color = '#0d47a1'; }
+        else if (ratio >= 17) { strength = 'Suave'; level = 'suave'; color = '#2e7d32'; }
+        else if (ratio >= 14.5) { strength = 'Normal'; level = 'normal'; color = '#e65100'; }
+        else if (ratio >= 12) { strength = 'Fuerte'; level = 'fuerte'; color = '#bf360c'; }
+        else { strength = 'Muy Fuerte'; level = 'muy-fuerte'; color = '#880e4f'; }
 
         let status = '', message = '';
-        if (Math.abs(diff) / recommended.grams < 0.1) {
-            status = '✅ Excelente';
-            message = 'La cantidad está dentro del rango recomendado para un café balanceado.';
+        if (Math.abs(diff) / recommended.grams < 0.05) {
+            status = '✅ ¡Perfecto!';
+            message = 'Tu preparación está en el punto exacto. ¡Excelente trabajo!';
         } else if (diff > 0) {
-            status = '☕ Más fuerte';
-            message = `Usas ${diff.toFixed(1)}g (≈${this.formatSpoon(diffSpoons)} cuchara${diffSpoons > 1 ? 's' : ''}) más de café. Obtendrás un café con mayor cuerpo.`;
+            status = '☕ Café más fuerte';
+            message = `Estás usando ${diff.toFixed(1)}g más de café. Obtendrás un café con mayor cuerpo.`;
         } else {
-            status = '☕ Más suave';
-            message = `Te faltan ${Math.abs(diff).toFixed(1)}g (≈${this.formatSpoon(diffSpoons)} cuchara${diffSpoons > 1 ? 's' : ''}) para alcanzar la recomendación. El café será más ligero.`;
+            status = '☕ Café más suave';
+            message = `Te faltan ${Math.abs(diff).toFixed(1)}g de café. El café será más ligero.`;
         }
 
         return {
