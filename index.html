@@ -8,7 +8,7 @@
     <meta name="keywords" content="café, imusa, café city, recetas, calculadora, barista, colombiano">
     <meta name="author" content="Mi Barista Imusa">
     <meta name="robots" content="index, follow">
-    
+
     <!-- Open Graph -->
     <meta property="og:title" content="☕ Mi Barista Imusa">
     <meta property="og:description" content="La guía completa para tu cafetera Imusa Café City">
@@ -16,26 +16,26 @@
     <meta property="og:url" content="https://tugithub.io/mi-barista-imusa">
     <meta property="og:image" content="https://tugithub.io/mi-barista-imusa/assets/img/og-image.jpg">
     <meta property="og:site_name" content="Mi Barista Imusa">
-    
+
     <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="☕ Mi Barista Imusa">
     <meta name="twitter:description" content="La guía completa para tu cafetera Imusa Café City">
     <meta name="twitter:image" content="https://tugithub.io/mi-barista-imusa/assets/img/og-image.jpg">
-    
+
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#6F4E37">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
-    
+
     <!-- CSS -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div id="app" role="application" aria-label="Mi Barista Imusa">
-        
+
         <!-- HEADER -->
         <header role="banner" class="app-header">
             <div class="header-content">
@@ -119,7 +119,7 @@
 
         <!-- MAIN CONTENT -->
         <main class="main-content" role="main">
-            
+
             <!-- ========== HOME ========== -->
             <section id="home" class="section active" role="tabpanel" aria-label="Inicio">
                 <div class="home-container">
@@ -136,7 +136,7 @@
                     <div class="quick-stats">
                         <div class="stat-card"><span class="stat-icon">💧</span><span class="stat-value">600 ml</span><span class="stat-label">Capacidad</span></div>
                         <div class="stat-card"><span class="stat-icon">🔄</span><span class="stat-value">6</span><span class="stat-label">Tazas</span></div>
-                        <div class="stat-card"><span class="stat-icon">📚</span><span class="stat-value">16</span><span class="stat-label">Marcas</span></div>
+                        <div class="stat-card"><span class="stat-icon">📚</span><span class="stat-value">15</span><span class="stat-label">Marcas</span></div>
                     </div>
 
                     <div class="section-header"><h2>☕ Café del Día</h2><span class="badge">Recomendado</span></div>
@@ -282,11 +282,11 @@
                 </div>
             </section>
 
-            <!-- ========== ANÁLISIS CON BÁSCULA (MEJORADO) ========== -->
+            <!-- ========== ANÁLISIS CON BÁSCULA (MEJORADO - ACUMULADOR) ========== -->
             <section id="analysis" class="section" role="tabpanel" aria-label="Análisis">
                 <div class="analysis-container">
                     <h2>⚖️ Análisis con Báscula</h2>
-                    <p class="section-description">Pesa el café con la cuchara incluida y la app calculará automáticamente el café real.</p>
+                    <p class="section-description">Pesa cada cucharada de café (café + cuchara) y presiona "Añadir cuchara". La app resta el peso de la cuchara y va sumando el café real acumulado.</p>
 
                     <div class="form-group">
                         <label for="scaleBrand">☕ Marca de café</label>
@@ -322,19 +322,26 @@
                         </div>
                     </div>
 
-                    <!-- Peso con botones de cuchara -->
+                    <!-- Peso con botones de cuchara (ACUMULADOR) -->
                     <div class="form-group">
-                        <label for="totalWeight">⚖️ Peso total (café + cuchara)</label>
+                        <label for="totalWeight">⚖️ Peso de la cucharada (café + cuchara)</label>
                         <div class="scale-input-group">
                             <div class="input-wrapper">
-                                <input type="number" id="totalWeight" placeholder="Ej: 24" min="8" step="0.5" value="12">
-                                <span class="input-hint">La cuchara IMUSA pesa 7g</span>
+                                <input type="number" id="totalWeight" placeholder="Ej: 12" min="0" step="0.5" value="0">
+                                <span class="input-hint">La cuchara IMUSA pesa 7g. Pesa una cucharada y presiona "Añadir cuchara".</span>
                             </div>
                             <div class="spoon-buttons">
                                 <button class="spoon-btn" data-action="add">➕ Añadir cuchara</button>
-                                <button class="spoon-btn" data-action="remove">➖ Quitar cuchara</button>
+                                <button class="spoon-btn" data-action="remove">➖ Quitar última</button>
                                 <button class="spoon-btn" data-action="reset">🔄 Reiniciar</button>
                             </div>
+                        </div>
+
+                        <!-- Acumulado -->
+                        <div class="accumulated-box" id="accumulatedBox">
+                            <span>☕ Café acumulado:</span>
+                            <strong><span id="accumulatedGrams">0</span>g</strong>
+                            <span class="accumulated-sub">(<span id="accumulatedSpoons">0</span> cucharas · <span id="accumulatedCount">0</span> pesada(s))</span>
                         </div>
                     </div>
 
