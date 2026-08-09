@@ -1,15 +1,12 @@
 // ========================================
-// ☕ MI BARISTA IMUSA - DATA COMPLETA V2
+// ☕ MI BARISTA IMUSA - DATA COMPLETA
 // Basado en "Maestría en Café Filtrado Colombiano"
-// Manual Técnico de Extracción y Recetario Maestre
-// Fuente: Gemini Notebook - Edición Especial 2026
 // ========================================
 
 // ========================================
 // 1. CONFIGURACIÓN DE ESTÁNDARES
 // ========================================
 const COFFEE_STANDARDS = {
-    // Relaciones café/agua según SCA
     ratios: {
         muy_suave: { ratio: 20, desc: 'Muy ligero, poco cuerpo' },
         suave: { ratio: 18, desc: 'Ligero, ideal para paladares delicados' },
@@ -17,34 +14,21 @@ const COFFEE_STANDARDS = {
         fuerte: { ratio: 14, desc: 'Intenso, mayor cuerpo' },
         muy_fuerte: { ratio: 12, desc: 'Muy intenso, cuerpo pesado' }
     },
-    
-    // Especificaciones Imusa Café City
     imusa: {
-        max_water: 600,        // ml
-        cups_max: 6,           // tazas de 100ml
-        spoon_grams: 7,        // 1 cuchara IMUSA = 7g (según manual)
-        tsp_grams: 2,          // 1 cucharadita = 2g para instantáneo
-        cup_ml: 150,           // pocillo estándar
-        mug_ml: 250,           // tazón promedio
-        power: 950,            // watts
-        capacity: 0.6          // litros
+        max_water: 600,
+        cups_max: 6,
+        spoon_grams: 7,
+        tsp_grams: 2,
+        cup_ml: 150,
+        mug_ml: 250,
+        power: 950,
+        capacity: 0.6
     },
-    
-    // Temperaturas recomendadas
     temperatures: {
         brewing: { min: 90, max: 96, optimal: 93 },
         milk: { min: 60, max: 70, optimal: 65 },
         serving: { min: 70, max: 85, optimal: 80 }
     },
-    
-    // Tiempos de extracción
-    brew_times: {
-        min: 180,
-        max: 300,
-        optimal: 240
-    },
-    
-    // Azúcar recomendada (gramos por ml)
     sugar: {
         none: 0,
         little: 0.04,
@@ -54,10 +38,9 @@ const COFFEE_STANDARDS = {
 };
 
 // ========================================
-// 2. MARCAS DE CAFÉ COLOMBIANO (COMPLETO)
+// 2. MARCAS DE CAFÉ (16 MARCAS)
 // ========================================
 const BRANDS = [
-    // ===== MARCAS PRINCIPALES (LAS QUE PIDIÓ EL USUARIO) =====
     {
         id: 'tostao',
         name: 'Tostao',
@@ -72,8 +55,7 @@ const BRANDS = [
         grams_250ml: 8.7,
         flavor_notes: ['Chocolate Oscuro', 'Cacao', 'Caramelo'],
         best_for: ['Tinto', 'Mocha', 'Café con Leche'],
-        description: 'Café de tueste oscuro, muy popular en Colombia. Económico y de buen cuerpo.',
-        price_per_kg: 45000
+        description: 'Café de tueste oscuro, muy popular en Colombia. Económico y de buen cuerpo.'
     },
     {
         id: 'juan-valdez',
@@ -89,8 +71,7 @@ const BRANDS = [
         grams_250ml: 10.5,
         flavor_notes: ['Chocolate', 'Nuez', 'Caramelo', 'Frutos Rojos'],
         best_for: ['Todo tipo', 'Latte', 'Capuccino'],
-        description: 'La marca insignia de Colombia. Café de alta calidad con tueste medio.',
-        price_per_kg: 55000
+        description: 'La marca insignia de Colombia. Café de alta calidad con tueste medio.'
     },
     {
         id: 'colina-balanceado',
@@ -106,8 +87,7 @@ const BRANDS = [
         grams_250ml: 10.5,
         flavor_notes: ['Durazno', 'Chocolate Blanco', 'Crema', 'Caramelo'],
         best_for: ['Filtrado Balanceado', 'Tinto', 'Café con Leche'],
-        description: 'Café de grano caracolito (esférico) de alta densidad. Notas de durazno y chocolate blanco.',
-        price_per_kg: 48000
+        description: 'Café de grano caracolito (esférico) de alta densidad. Notas de durazno y chocolate blanco.'
     },
     {
         id: 'sello-rojo',
@@ -123,8 +103,7 @@ const BRANDS = [
         grams_250ml: 8.7,
         flavor_notes: ['Chocolate', 'Caramelo Quemado', 'Frutos Secos'],
         best_for: ['Tinto Fuerte', 'Mocha'],
-        description: 'Tradición colombiana, tueste oscuro, cuerpo achocolatado y sabor intenso.',
-        price_per_kg: 35000
+        description: 'Tradición colombiana, tueste oscuro, cuerpo achocolatado y sabor intenso.'
     },
     {
         id: 'buendia-instant',
@@ -140,11 +119,8 @@ const BRANDS = [
         grams_250ml: 4,
         flavor_notes: ['Caramelo', 'Cítricos'],
         best_for: ['Instantáneo', 'Rápido'],
-        description: 'Café soluble liofilizado con notas cítricas y caramelizadas.',
-        price_per_kg: 40000
+        description: 'Café soluble liofilizado con notas cítricas y caramelizadas.'
     },
-
-    // ===== MARCAS ADICIONALES (LAS MÁS CONOCIDAS EN COLOMBIA) =====
     {
         id: 'nescafe',
         name: 'Nescafé',
@@ -159,8 +135,7 @@ const BRANDS = [
         grams_250ml: 4,
         flavor_notes: ['Café Clásico'],
         best_for: ['Instantáneo', 'Rápido'],
-        description: 'Café soluble comercial, liofilizado. Fácil preparación.',
-        price_per_kg: 38000
+        description: 'Café soluble comercial, liofilizado. Fácil preparación.'
     },
     {
         id: 'colcafe',
@@ -176,8 +151,7 @@ const BRANDS = [
         grams_250ml: 10.5,
         flavor_notes: ['Caramelo', 'Frutos Secos', 'Chocolate Suave'],
         best_for: ['Todo tipo', 'Tinto', 'Café con Leche'],
-        description: 'Tradición y sabor colombiano, tueste medio, cuerpo equilibrado.',
-        price_per_kg: 30000
+        description: 'Tradición y sabor colombiano, tueste medio, cuerpo equilibrado.'
     },
     {
         id: 'aguila-roja',
@@ -193,8 +167,7 @@ const BRANDS = [
         grams_250ml: 10.5,
         flavor_notes: ['Caramelo', 'Frutos Secos', 'Chocolate Suave'],
         best_for: ['Tinto Diario', 'Café con Leche'],
-        description: 'Sabor tradicional colombiano, tueste medio, cuerpo equilibrado.',
-        price_per_kg: 32000
+        description: 'Sabor tradicional colombiano, tueste medio, cuerpo equilibrado.'
     },
     {
         id: 'oma',
@@ -210,8 +183,7 @@ const BRANDS = [
         grams_250ml: 12.2,
         flavor_notes: ['Frutas Tropicales', 'Flores', 'Caramelo'],
         best_for: ['Filtrado', 'Cold Brew', 'Tinto Especial'],
-        description: 'Café de especialidad, tueste medio, acidez brillante, notas frutales.',
-        price_per_kg: 60000
+        description: 'Café de especialidad, tueste medio, acidez brillante, notas frutales.'
     },
     {
         id: 'matiz',
@@ -227,8 +199,7 @@ const BRANDS = [
         grams_250ml: 12.2,
         flavor_notes: ['Frutos Rojos', 'Caramelo', 'Miel', 'Flores Blancas'],
         best_for: ['Latte', 'Capuccino', 'Café con Leche'],
-        description: 'Café suave y aromático, tueste medio, perfecto para desayunos.',
-        price_per_kg: 58000
+        description: 'Café suave y aromático, tueste medio, perfecto para desayunos.'
     },
     {
         id: 'san-alberto',
@@ -244,8 +215,7 @@ const BRANDS = [
         grams_250ml: 8.7,
         flavor_notes: ['Chocolate Oscuro', 'Especias', 'Frutos Secos'],
         best_for: ['Espresso', 'Negro', 'Tinto Premium'],
-        description: 'Café premium de alta montaña, tueste oscuro, cuerpo pesado.',
-        price_per_kg: 75000
+        description: 'Café premium de alta montaña, tueste oscuro, cuerpo pesado.'
     },
     {
         id: 'devocion',
@@ -261,8 +231,7 @@ const BRANDS = [
         grams_250ml: 12.2,
         flavor_notes: ['Frutos del Bosque', 'Cereza', 'Agraz', 'Cacao', 'Caramelo'],
         best_for: ['Cold Brew', 'Filtrado', 'Tinto Especial'],
-        description: 'Café fresco y frutal, tueste medio. REQUIERE PREINFUSIÓN de 30 segundos.',
-        price_per_kg: 80000
+        description: 'Café fresco y frutal, tueste medio. REQUIERE PREINFUSIÓN de 30 segundos.'
     },
     {
         id: 'amor-perfecto',
@@ -278,8 +247,7 @@ const BRANDS = [
         grams_250ml: 10.5,
         flavor_notes: ['Chocolate', 'Panela', 'Miel', 'Frutos Rojos', 'Cítricos'],
         best_for: ['Filtrado', 'Tinto Especial', 'Cold Brew'],
-        description: 'Café de especialidad de Nariño, suelos volcánicos, alta densidad.',
-        price_per_kg: 65000
+        description: 'Café de especialidad de Nariño, suelos volcánicos, alta densidad.'
     },
     {
         id: 'cafe-quindio',
@@ -295,8 +263,7 @@ const BRANDS = [
         grams_250ml: 12.2,
         flavor_notes: ['Caramelo', 'Frutos Tropicales', 'Cítricos'],
         best_for: ['Filtrado', 'Tinto', 'Cold Brew'],
-        description: 'Café del Eje Cafetero, acidez brillante, notas a caramelo y frutas.',
-        price_per_kg: 50000
+        description: 'Café del Eje Cafetero, acidez brillante, notas a caramelo y frutas.'
     },
     {
         id: 'cafe-narino',
@@ -312,13 +279,12 @@ const BRANDS = [
         grams_250ml: 12.2,
         flavor_notes: ['Flores', 'Frutos Tropicales', 'Caramelo', 'Cítricos'],
         best_for: ['Filtrado', 'Tinto', 'Cold Brew'],
-        description: 'Café de Nariño con notas florales y acidez brillante.',
-        price_per_kg: 52000
+        description: 'Café de Nariño con notas florales y acidez brillante.'
     }
 ];
 
 // ========================================
-// 3. TABLA DE MEDIDAS PARA CAFÉ INSTANTÁNEO
+// 3. CAFÉ INSTANTÁNEO - MEDIDAS
 // ========================================
 const INSTANT_COFFEE_MEASURES = {
     'nescafe': { base: 3, name: 'Nescafé Tradición' },
@@ -330,7 +296,7 @@ const INSTANT_COFFEE_MEASURES = {
 };
 
 // ========================================
-// 4. GUÍAS DE MANTENIMIENTO
+// 4. GUÍAS
 // ========================================
 const GUIDES = [
     {
@@ -372,165 +338,7 @@ const GUIDES = [
 ];
 
 // ========================================
-// 5. FUNCIONES DE CÁLCULO (CoffeeMath)
-// ========================================
-const CoffeeMath = {
-    // Convertir gramos a cucharas IMUSA (1 cuchara = 7g)
-    gramsToSpoons: function(grams) {
-        if (!grams || grams <= 0) return 0;
-        const spoons = grams / COFFEE_STANDARDS.imusa.spoon_grams;
-        return Math.round(spoons * 4) / 4;
-    },
-    
-    // Convertir cucharas a gramos
-    spoonsToGrams: function(spoons) {
-        if (!spoons || spoons <= 0) return 0;
-        return spoons * COFFEE_STANDARDS.imusa.spoon_grams;
-    },
-    
-    // Formatear fracciones (ej: 1.5 → "1½")
-    formatSpoon: function(value) {
-        if (!value || value <= 0) return '0';
-        const whole = Math.floor(value);
-        const frac = value - whole;
-        
-        if (frac === 0) return `${whole}`;
-        if (frac === 0.25) return whole > 0 ? `${whole}¼` : '¼';
-        if (frac === 0.5) return whole > 0 ? `${whole}½` : '½';
-        if (frac === 0.75) return whole > 0 ? `${whole}¾` : '¾';
-        if (frac === 0.125) return whole > 0 ? `${whole}⅛` : '⅛';
-        if (frac === 0.375) return whole > 0 ? `${whole}⅜` : '⅜';
-        if (frac === 0.625) return whole > 0 ? `${whole}⅝` : '⅝';
-        if (frac === 0.875) return whole > 0 ? `${whole}⅞` : '⅞';
-        // Si no es fracción común, redondear a 2 decimales
-        return (whole + frac).toFixed(2);
-    },
-    
-    // Obtener marca por ID
-    getBrand: function(id) {
-        return BRANDS.find(b => b.id === id) || BRANDS[0];
-    },
-    
-    // Obtener dosis recomendada para una marca y volumen de agua
-    getRecommendedDose: function(brandId, water_ml) {
-        const brand = this.getBrand(brandId);
-        // Base: gramos para 250ml
-        const baseGrams = brand.grams_250ml || 10.5;
-        const ratio = water_ml / 250;
-        const grams = baseGrams * ratio;
-        const spoons = this.gramsToSpoons(grams);
-        return {
-            grams: Math.round(grams * 10) / 10,
-            spoons: Math.round(spoons * 4) / 4
-        };
-    },
-    
-    // Calcular azúcar recomendada
-    calculateSugar: function(water_ml, level = 'medium') {
-        const sugarPerMl = COFFEE_STANDARDS.sugar[level] || 0.08;
-        const grams = water_ml * sugarPerMl;
-        const teaspoons = grams / 5; // 1 cucharadita = 5g
-        return Math.round(teaspoons * 4) / 4;
-    },
-    
-    // ========================================
-    // ANÁLISIS CON BÁSCULA (RESTA 7g DE LA CUCHARA)
-    // ========================================
-    analyzeWithScale: function(totalWeight, water_ml, brandId) {
-        const spoonWeight = COFFEE_STANDARDS.imusa.spoon_grams; // 7g
-        const coffeeGrams = totalWeight - spoonWeight;
-        
-        if (coffeeGrams <= 0) {
-            return { error: 'El peso total debe ser mayor a 7g (peso de la cuchara)' };
-        }
-        
-        const brand = this.getBrand(brandId);
-        const recommended = this.getRecommendedDose(brandId, water_ml);
-        const diff = coffeeGrams - recommended.grams;
-        const diffSpoons = this.gramsToSpoons(Math.abs(diff));
-        const ratio = water_ml / coffeeGrams;
-        const spoons = this.gramsToSpoons(coffeeGrams);
-        
-        // Determinar intensidad
-        let strength = '';
-        let level = '';
-        let color = '';
-        let emoji = '☕';
-        
-        if (ratio >= 18) {
-            strength = 'Muy Suave';
-            level = 'muy_suave';
-            color = '#8B6B4F';
-            emoji = '☕';
-        } else if (ratio >= 16) {
-            strength = 'Suave';
-            level = 'suave';
-            color = '#A0806A';
-            emoji = '☕';
-        } else if (ratio >= 14) {
-            strength = 'Normal';
-            level = 'normal';
-            color = '#6F4E37';
-            emoji = '☕';
-        } else if (ratio >= 12) {
-            strength = 'Fuerte';
-            level = 'fuerte';
-            color = '#4A3228';
-            emoji = '☕';
-        } else {
-            strength = 'Muy Fuerte';
-            level = 'muy_fuerte';
-            color = '#2C1810';
-            emoji = '☕';
-        }
-        
-        let status = '';
-        let message = '';
-        if (Math.abs(diff) / recommended.grams < 0.1) {
-            status = '✅ Excelente';
-            message = 'La cantidad está dentro del rango recomendado para un café balanceado.';
-        } else if (diff > 0) {
-            status = '☕ Más fuerte';
-            message = `Usas ${diff.toFixed(1)}g (≈${this.formatSpoon(diffSpoons)} cuchara${diffSpoons > 1 ? 's' : ''}) más de café. Obtendrás un café con mayor cuerpo.`;
-        } else {
-            status = '☕ Más suave';
-            message = `Te faltan ${Math.abs(diff).toFixed(1)}g (≈${this.formatSpoon(diffSpoons)} cuchara${diffSpoons > 1 ? 's' : ''}) para alcanzar la recomendación. El café será más ligero.`;
-        }
-        
-        // Determinar porcentaje para la barra
-        const strengthPercent = Math.max(0, Math.min(100, (ratio - 10) * 10));
-        
-        return {
-            totalWeight: Math.round(totalWeight * 10) / 10,
-            coffeeGrams: Math.round(coffeeGrams * 10) / 10,
-            spoons: Math.round(spoons * 4) / 4,
-            spoonsDisplay: this.formatSpoon(spoons),
-            water_ml: water_ml,
-            ratio: Math.round(ratio * 10) / 10,
-            strength: strength,
-            level: level,
-            color: color,
-            emoji: emoji,
-            strengthPercent: Math.min(100, strengthPercent),
-            status: status,
-            message: message,
-            recommended: {
-                grams: recommended.grams,
-                spoons: recommended.spoons,
-                spoonsDisplay: this.formatSpoon(recommended.spoons)
-            },
-            diff: Math.round(diff * 10) / 10,
-            diffSpoons: Math.round(diffSpoons * 4) / 4,
-            diffSpoonsDisplay: this.formatSpoon(diffSpoons),
-            sugar: this.calculateSugar(water_ml, 'medium'),
-            brand: brand.name,
-            brandId: brand.id
-        };
-    }
-};
-
-// ========================================
-// 6. RECETAS (SOLO LAS MÁS IMPORTANTES)
+// 5. RECETAS
 // ========================================
 const RECIPES = [
     {
@@ -668,7 +476,114 @@ const RECIPES = [
 ];
 
 // ========================================
-// 7. EXPORTAR DATOS (GLOBAL)
+// 6. CoffeeMath - FUNCIONES DE CÁLCULO
+// ========================================
+const CoffeeMath = {
+    gramsToSpoons: function(grams) {
+        if (!grams || grams <= 0) return 0;
+        const spoons = grams / COFFEE_STANDARDS.imusa.spoon_grams;
+        return Math.round(spoons * 4) / 4;
+    },
+    spoonsToGrams: function(spoons) {
+        if (!spoons || spoons <= 0) return 0;
+        return spoons * COFFEE_STANDARDS.imusa.spoon_grams;
+    },
+    formatSpoon: function(value) {
+        if (!value || value <= 0) return '0';
+        const whole = Math.floor(value);
+        const frac = value - whole;
+        if (frac === 0) return `${whole}`;
+        if (frac === 0.25) return whole > 0 ? `${whole}¼` : '¼';
+        if (frac === 0.5) return whole > 0 ? `${whole}½` : '½';
+        if (frac === 0.75) return whole > 0 ? `${whole}¾` : '¾';
+        if (frac === 0.125) return whole > 0 ? `${whole}⅛` : '⅛';
+        if (frac === 0.375) return whole > 0 ? `${whole}⅜` : '⅜';
+        if (frac === 0.625) return whole > 0 ? `${whole}⅝` : '⅝';
+        if (frac === 0.875) return whole > 0 ? `${whole}⅞` : '⅞';
+        return (whole + frac).toFixed(2);
+    },
+    getBrand: function(id) {
+        return BRANDS.find(b => b.id === id) || BRANDS[0];
+    },
+    getRecommendedDose: function(brandId, water_ml) {
+        const brand = this.getBrand(brandId);
+        const baseGrams = brand.grams_250ml || 10.5;
+        const ratio = water_ml / 250;
+        const grams = baseGrams * ratio;
+        const spoons = this.gramsToSpoons(grams);
+        return {
+            grams: Math.round(grams * 10) / 10,
+            spoons: Math.round(spoons * 4) / 4
+        };
+    },
+    calculateSugar: function(water_ml, level = 'medium') {
+        const sugarPerMl = COFFEE_STANDARDS.sugar[level] || 0.08;
+        const grams = water_ml * sugarPerMl;
+        const teaspoons = grams / 5;
+        return Math.round(teaspoons * 4) / 4;
+    },
+    analyzeWithScale: function(totalWeight, water_ml, brandId) {
+        const spoonWeight = COFFEE_STANDARDS.imusa.spoon_grams;
+        const coffeeGrams = totalWeight - spoonWeight;
+        if (coffeeGrams <= 0) {
+            return { error: 'El peso total debe ser mayor a 7g (peso de la cuchara)' };
+        }
+        const brand = this.getBrand(brandId);
+        const recommended = this.getRecommendedDose(brandId, water_ml);
+        const diff = coffeeGrams - recommended.grams;
+        const diffSpoons = this.gramsToSpoons(Math.abs(diff));
+        const ratio = water_ml / coffeeGrams;
+        const spoons = this.gramsToSpoons(coffeeGrams);
+
+        let strength = '', level = '', color = '', emoji = '☕';
+        if (ratio >= 18) { strength = 'Muy Suave'; level = 'muy_suave'; color = '#8B6B4F'; }
+        else if (ratio >= 16) { strength = 'Suave'; level = 'suave'; color = '#A0806A'; }
+        else if (ratio >= 14) { strength = 'Normal'; level = 'normal'; color = '#6F4E37'; }
+        else if (ratio >= 12) { strength = 'Fuerte'; level = 'fuerte'; color = '#4A3228'; }
+        else { strength = 'Muy Fuerte'; level = 'muy_fuerte'; color = '#2C1810'; }
+
+        let status = '', message = '';
+        if (Math.abs(diff) / recommended.grams < 0.1) {
+            status = '✅ Excelente';
+            message = 'La cantidad está dentro del rango recomendado para un café balanceado.';
+        } else if (diff > 0) {
+            status = '☕ Más fuerte';
+            message = `Usas ${diff.toFixed(1)}g (≈${this.formatSpoon(diffSpoons)} cuchara${diffSpoons > 1 ? 's' : ''}) más de café. Obtendrás un café con mayor cuerpo.`;
+        } else {
+            status = '☕ Más suave';
+            message = `Te faltan ${Math.abs(diff).toFixed(1)}g (≈${this.formatSpoon(diffSpoons)} cuchara${diffSpoons > 1 ? 's' : ''}) para alcanzar la recomendación. El café será más ligero.`;
+        }
+
+        return {
+            totalWeight: Math.round(totalWeight * 10) / 10,
+            coffeeGrams: Math.round(coffeeGrams * 10) / 10,
+            spoons: Math.round(spoons * 4) / 4,
+            spoonsDisplay: this.formatSpoon(spoons),
+            water_ml: water_ml,
+            ratio: Math.round(ratio * 10) / 10,
+            strength: strength,
+            level: level,
+            color: color,
+            emoji: emoji,
+            status: status,
+            message: message,
+            recommended: {
+                grams: recommended.grams,
+                spoons: recommended.spoons,
+                spoonsDisplay: this.formatSpoon(recommended.spoons)
+            },
+            diff: Math.round(diff * 10) / 10,
+            diffSpoons: Math.round(diffSpoons * 4) / 4,
+            diffSpoonsDisplay: this.formatSpoon(diffSpoons),
+            sugar: this.calculateSugar(water_ml, 'medium'),
+            brand: brand.name,
+            brandId: brand.id
+        };
+    }
+};
+
+// ========================================
+// EXPORTAR
 // ========================================
 window.COFFEE_STANDARDS = COFFEE_STANDARDS;
 window.BRANDS = BRANDS;
@@ -677,9 +592,6 @@ window.GUIDES = GUIDES;
 window.RECIPES = RECIPES;
 window.CoffeeMath = CoffeeMath;
 
-// Mensaje de confirmación en consola
 console.log('☕ Mi Barista Imusa - Data cargada correctamente');
 console.log(`📚 ${BRANDS.length} marcas disponibles`);
 console.log(`📖 ${RECIPES.length} recetas cargadas`);
-console.log(`📋 ${GUIDES.length} guías de mantenimiento`);
-console.log('✅ CoffeeMath disponible globalmente');
