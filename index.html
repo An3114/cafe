@@ -328,93 +328,88 @@
                 </div>
             </section>
 
-            <!-- ANALYSIS SECTION -->
+            <!-- ======================================== -->
+            <!-- ANÁLISIS - SECCIÓN COMPLETA             -->
+            <!-- ======================================== -->
             <section id="analysis" class="section" role="tabpanel" aria-label="Análisis">
                 <div class="analysis-container">
-                    
-                    <!-- Calculadora por Gramos/Cucharas Dinámica -->
-                    <div class="analysis-input">
-                        <h2>☕ ¿Mi cantidad de café es correcta?</h2>
-                        <p class="section-description">
-                            Ingresa la cantidad de café que usas y te diremos si es la adecuada para tu cafetera Imusa.
-                            Basado en estándares SCA (Specialty Coffee Association).
+                    <h2>☕ ¿Mi cantidad de café es correcta?</h2>
+                    <p class="section-description">
+                        Ingresa la cantidad de café que usas y te diremos si es la adecuada.
+                        Basado en estándares SCA (Specialty Coffee Association).
+                    </p>
+
+                    <!-- ===== OPCIÓN 1: CON BÁSCULA (PESO TOTAL) ===== -->
+                    <div class="analysis-card scale-card">
+                        <div class="card-header">
+                            <span class="card-icon">⚖️</span>
+                            <h3>Análisis con Báscula</h3>
+                            <span class="badge">Recomendado</span>
+                        </div>
+                        <p class="card-desc">
+                            Pesa el café <strong>con la cuchara incluida</strong> y la app calculará automáticamente el café real.
                         </p>
-                        
                         <div class="input-group">
-                            <label for="customGrams">Cantidad de café</label>
-                            <input type="number" id="customGrams" placeholder="Ej: 9" min="1" step="0.5">
-                            <div class="unit-selector">
-                                <label>
-                                    <input type="radio" name="unit" value="grams" checked> Gramos
-                                </label>
-                                <label>
-                                    <input type="radio" name="unit" value="spoons"> Cucharas
-                                </label>
-                            </div>
-                        </div>
-                        <button id="analyzeBtn" class="btn-primary">📊 Analizar</button>
-                    </div>
-
-                    <div id="analysisResult">
-                        <!-- Resultado del análisis dinámico -->
-                    </div>
-
-                    <!-- Calculadora por Báscula/Peso Directo -->
-                    <div class="section-container weight-calculator">
-                        <h3>⚖️ Análisis directo por Báscula</h3>
-                        <p class="section-description">
-                            Ingresa los gramos de café que usas con tu báscula y te diremos si es la cantidad adecuada.
-                        </p>
-                        
-                        <div class="weight-input-group">
                             <div class="input-wrapper">
-                                <label for="weightInput">Cantidad de café (gramos)</label>
-                                <input type="number" id="weightInput" placeholder="Ej: 10.5" min="1" step="0.5">
-                                <span class="input-hint">Usa tu báscula para pesar el café</span>
+                                <label for="scaleInput">Peso total (café + cuchara)</label>
+                                <div class="input-with-unit">
+                                    <input type="number" id="scaleInput" placeholder="Ej: 19" min="1" step="0.5">
+                                    <span class="unit">gramos</span>
+                                </div>
+                                <span class="hint">La cuchara IMUSA pesa 7g</span>
                             </div>
-                            <button id="analyzeWeight" class="btn-primary">📊 Analizar</button>
+                            <button id="scaleAnalyze" class="btn-primary">📊 Analizar</button>
                         </div>
-                        
-                        <div id="weightResult">
-                            <!-- Resultado del análisis de peso -->
-                        </div>
+                        <div id="scaleResult"></div>
                     </div>
 
-                    <!-- Consejo de Cuchara Imusa -->
-                    <div class="spoon-tip">
-                        <div class="tip-content">
-                            <span class="tip-icon">🥄</span>
-                            <div>
-                                <strong>1 cuchara dosificadora IMUSA = 7 gramos</strong>
-                                <p class="tip-text">La cuchara provista con tu cafetera Imusa tiene una capacidad de 7g de café molido de granulometría media.</p>
-                            </div>
+                    <!-- ===== OPCIÓN 2: GRAMOS DIRECTOS ===== -->
+                    <div class="analysis-card direct-card">
+                        <div class="card-header">
+                            <span class="card-icon">☕</span>
+                            <h3>Análisis por Gramos</h3>
+                            <span class="badge">Sin báscula</span>
                         </div>
-                    </div>
-
-                    <!-- Calculadora de Costo -->
-                    <div class="cost-section">
-                        <h3>💰 Calculadora de Costo</h3>
-                        <p class="section-description">
-                            Descubre cuánto te cuesta cada taza de café.
+                        <p class="card-desc">
+                            Ingresa directamente los gramos de café que estás usando.
                         </p>
-                        <div class="cost-inputs">
-                            <div class="input-group">
-                                <label for="coffeePrice">💰 Precio del paquete ($)</label>
-                                <input type="number" id="coffeePrice" placeholder="30.000" min="1">
+                        <div class="input-group">
+                            <div class="input-wrapper">
+                                <label for="directGrams">Gramos de café</label>
+                                <div class="input-with-unit">
+                                    <input type="number" id="directGrams" placeholder="Ej: 10.5" min="1" step="0.5">
+                                    <span class="unit">gramos</span>
+                                </div>
+                                <span class="hint">Café molido sin la cuchara</span>
                             </div>
-                            <div class="input-group">
-                                <label for="coffeeWeight">⚖️ Peso del paquete (g)</label>
+                            <button id="directAnalyze" class="btn-primary">📊 Analizar</button>
+                        </div>
+                        <div id="directResult"></div>
+                    </div>
+
+                    <!-- ===== CALCULADORA DE COSTO ===== -->
+                    <div class="analysis-card cost-card">
+                        <div class="card-header">
+                            <span class="card-icon">💰</span>
+                            <h3>Calculadora de Costo</h3>
+                        </div>
+                        <p class="card-desc">Descubre cuánto te cuesta cada taza de café.</p>
+                        <div class="cost-grid">
+                            <div class="cost-input">
+                                <label for="coffeePrice">Precio del paquete ($)</label>
+                                <input type="number" id="coffeePrice" placeholder="30000" min="1">
+                            </div>
+                            <div class="cost-input">
+                                <label for="coffeeWeight">Peso del paquete (g)</label>
                                 <input type="number" id="coffeeWeight" placeholder="340" min="1">
                             </div>
-                            <div class="input-group">
-                                <label for="coffeeUsed">☕ Cantidad usada (g)</label>
-                                <input type="number" id="coffeeUsed" placeholder="9" min="1">
+                            <div class="cost-input">
+                                <label for="coffeeUsed">Cantidad usada (g)</label>
+                                <input type="number" id="coffeeUsed" placeholder="10.5" min="1" step="0.5">
                             </div>
                         </div>
                         <button id="calculateCost" class="btn-primary">🧮 Calcular</button>
-                        <div id="costResult">
-                            <!-- Resultado del costo -->
-                        </div>
+                        <div id="costResult"></div>
                     </div>
                 </div>
             </section>
