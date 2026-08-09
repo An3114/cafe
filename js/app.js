@@ -1,22 +1,9 @@
 // ========================================
-// ☕ MI BARISTA IMUSA - APP PRINCIPAL
-// CON CALCULADORA DE PESO Y RESTA AUTOMÁTICA
-// Basado en "Maestría en Café Filtrado Colombiano"
+// ☕ MI BARISTA IMUSA - APP COMPLETA
 // ========================================
 
 (function() {
     'use strict';
-
-    // ========================================
-    // CONFIGURACIÓN
-    // ========================================
-    const CONFIG = {
-        spoonWeight: 7, // Peso de la cuchara dosificadora IMUSA en gramos
-        waterMin: 100,
-        waterMax: 600,
-        defaultWater: 250,
-        defaultStrength: 'normal'
-    };
 
     // ========================================
     // ESTADO
@@ -27,500 +14,47 @@
         favorites: JSON.parse(localStorage.getItem('imusaFavorites')) || [],
         history: JSON.parse(localStorage.getItem('imusaHistory')) || [],
         calculator: {
-            water: CONFIG.defaultWater,
-            strength: CONFIG.defaultStrength,
-            customGrams: null
-        },
-        timer: {
-            seconds: 180,
-            interval: null,
-            running: false
+            water: 250,
+            strength: 'normal',
+            brand: 'tostao'
         }
     };
 
     // ========================================
-    // UTILIDADES Y MATEMÁTICAS
+    // UTILIDADES
     // ========================================
-    const CoffeeMath = {
-        // Peso real de café = peso_total - peso_cuchara
-        getRealCoffeeWeight: function(totalWeight) {
-            return Math.max(0, totalWeight - CONFIG.spoonWeight);
+    const Utils = {
+        saveToStorage: (key, data) => {
+            try { localStorage.setItem(key, JSON.stringify(data)); } catch (e) {}
         },
-
-        // Convertir gramos reales a cucharas
-        gramsToSpoons: function(grams) {
-            if (grams <= 0) return 0;
-            return Math.round((grams / CONFIG.spoonWeight) * 4) / 4;
-        },
-
-        // Convertir cucharas a gramos
-        spoonsToGrams: function(spoons) {
-            return spoons * CONFIG.spoonWeight;
-        },
-
-        // Formatear fracciones de cuchara
-        formatSpoon: function(value) {
-            if (value === 0) return '0';
-            const whole = Math.floor(value);
-            const frac = value - whole;
-            
-            const fracMap = {
-                0: '',
-                0.25: '¼',
-                0.5: '½',
-                0.75: '¾'
-            };
-            
-            const fracStr = fracMap[Math.round(frac * 4) / 4] || '';
-            return whole > 0 ? `${whole}${fracStr}` : fracStr || value.toFixed(1);
-        },
-
-        // Calcular relación café/agua
-        calculateRatio: function(grams, water) {
-            if (water === 0 || grams === 0) return 0;
-            return Math.round((water / grams) * 10) / 10;
-        },
-
-        // Determinar intensidad basado en la relación
-        getIntensity: function(ratio) {
-            if (ratio >= 20) return { level: 'Muy Suave', icon: '☕', color: '#A0806A', range: '1:20+' };
-            if (ratio >= 18) return { level: 'Suave', icon: '☕', color: '#8B6B4F', range: '1:18-1:20' };
-            if (ratio >= 16) return { level: 'Normal', icon: '☕', color: '#6F4E37', range: '1:16-1:18' };
-            if (ratio >= 14) return { level: 'Fuerte', icon: '☕', color: '#4A3228', range: '1:14-1:16' };
-            return { level: 'Muy Fuerte', icon: '☕', color: '#2C1810', range: '1:14-' };
-        },
-
-        // Calcular azúcar recomendada (en cucharaditas)
-        calculateSugar: function(water, level = 'medium') {
-            const sugarMap = {
-                none: 0,
-                little: 0.03,
-                medium: 0.06,
-                much: 0.09
-            };
-            const grams = water * (sugarMap[level] || 0.06);
-            const teaspoons = grams / 5; // 1 cucharadita = 5g
-            return Math.round(teaspoons * 4) / 4;
-        },
-
-        // Analizar preparación completa
-        analyzePreparation: function(totalWeight, water, strength) {
-            // Obtener peso real de café
-            const realGrams = this.getRealCoffeeWeight(totalWeight);
-            
-            if (realGrams <= 0) {
-                return {
-                    error: true,
-                    message: '⚠️ El peso del café debe ser mayor que el peso de la cuchara.',
-                    realGrams: 0,
-                    spoons: 0
-                };
-            }
-
-            const ratio = this.calculateRatio(realGrams, water);
-            const intensity = this.getIntensity(ratio);
-            
-            // Recomendación basada en SCA
-            const idealRatio = 16.67; // SCA Gold Cup
-            const idealGrams = Math.round((water / idealRatio) * 10) / 10;
-            const diff = Math.round((realGrams - idealGrams) * 10) / 10;
-            const diffSpoons = this.gramsToSpoons(Math.abs(diff));
-            
-            // Determinar estado
-            let status = '';
-            let message = '';
-            
-            if (Math.abs(diff) / idealGrams < 0.1) {
-                status = '✅ Excelente';
-                message = 'Tu preparación está dentro del rango recomendado para un café balanceado.';
-            } else if (diff > 0) {
-                status = '☕ Más fuerte';
-                message = `Usas ${diff.toFixed(1)}g (≈${this.formatSpoon(diffSpoons)} cuchara${diffSpoons > 1 ? 's' : ''}) más de café. Obtendrás un café con mayor cuerpo.`;
-            } else {
-                status = '☕ Más suave';
-                message = `Te faltan ${Math.abs(diff).toFixed(1)}g (≈${this.formatSpoon(diffSpoons)} cuchara${diffSpoons > 1 ? 's' : ''}) de café. El resultado será más ligero.`;
-            }
-            
-            const spoons = this.gramsToSpoons(realGrams);
-            const sugar = this.calculateSugar(water, 'medium');
-            
-            return {
-                error: false,
-                totalWeight,
-                realGrams,
-                spoons,
-                ratio,
-                intensity,
-                idealGrams,
-                diff,
-                diffSpoons,
-                status,
-                message,
-                sugar,
-                spoonDisplay: this.formatSpoon(spoons),
-                diffSpoonDisplay: this.formatSpoon(diffSpoons)
-            };
+        loadFromStorage: (key, defaultVal) => {
+            try {
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : defaultVal;
+            } catch (e) { return defaultVal; }
         }
     };
 
     // ========================================
-    // FUNCIONES DE UI
+    // TEMA
     // ========================================
-    function updateCalculator() {
-        const water = AppState.calculator.water;
-        const strength = AppState.calculator.strength;
-        
-        const ratios = {
-            suave: 18,
-            normal: 16.67,
-            fuerte: 14
-        };
-        
-        const ratio = ratios[strength] || 16.67;
-        const grams = Math.round((water / ratio) * 10) / 10;
-        const spoons = CoffeeMath.gramsToSpoons(grams);
-        const sugar = CoffeeMath.calculateSugar(water, 'medium');
-        const caffeine = Math.round(grams * 8);
-        
-        document.getElementById('coffeeSpoons').textContent = CoffeeMath.formatSpoon(spoons) + ' cucharas';
-        document.getElementById('coffeeGrams').textContent = `(${grams}g aprox.)`;
-        document.getElementById('caffeineAmount').textContent = `~${caffeine} mg`;
-        document.getElementById('sugarAmount').textContent = sugar > 0 ? 
-            `${sugar} cucharadita${sugar > 1 ? 's' : ''}` : 
-            'Sin azúcar';
-        document.getElementById('brewTime').textContent = `~${Math.round(water / 60 + 2)} min`;
-        document.getElementById('waterDisplay').textContent = `${water} ml`;
-        
-        updateTip(water);
+    function loadTheme() {
+        const saved = localStorage.getItem('imusaTheme') || 'light';
+        setTheme(saved);
     }
 
-    function updateTip(water) {
-        const tip = document.getElementById('dynamicTip');
-        if (!tip) return;
-        
-        if (water <= 150) tip.textContent = '💡 Volumen pequeño: sabor más concentrado.';
-        else if (water <= 300) tip.textContent = '💡 Volumen ideal para una taza grande.';
-        else if (water <= 450) tip.textContent = '💡 Para 2-3 tazas. Reparte bien el café.';
-        else tip.textContent = '💡 Capacidad máxima. Consume recién preparado.';
+    function setTheme(theme) {
+        AppState.theme = theme;
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('imusaTheme', theme);
+    }
+
+    function toggleTheme() {
+        setTheme(AppState.theme === 'light' ? 'dark' : 'light');
     }
 
     // ========================================
-    // ANÁLISIS CON BÁSCULA (NUEVO)
-    // ========================================
-    function analyzeWithScale() {
-        const input = document.getElementById('scaleInput');
-        const totalWeight = parseFloat(input.value);
-        
-        if (isNaN(totalWeight) || totalWeight <= 0) {
-            document.getElementById('scaleResult').innerHTML = `
-                <div class="analysis-error">
-                    ⚠️ Ingresa el peso total (café + cuchara) en gramos.
-                </div>
-            `;
-            return;
-        }
-
-        const water = AppState.calculator.water;
-        const strength = AppState.calculator.strength;
-        
-        const analysis = CoffeeMath.analyzePreparation(totalWeight, water, strength);
-        
-        if (analysis.error) {
-            document.getElementById('scaleResult').innerHTML = `
-                <div class="analysis-error">${analysis.message}</div>
-            `;
-            return;
-        }
-
-        const intensity = analysis.intensity;
-        const barPercent = Math.min(100, Math.max(0, (analysis.ratio - 10) * 10));
-        
-        document.getElementById('scaleResult').innerHTML = `
-            <div class="analysis-card">
-                <div class="analysis-status" style="border-left-color: ${intensity.color};">
-                    ${analysis.status}
-                </div>
-                
-                <div class="analysis-grid">
-                    <div class="analysis-item">
-                        <span class="label">⚖️ Peso total</span>
-                        <span class="value">${analysis.totalWeight}g</span>
-                        <span class="sub">(café + cuchara)</span>
-                    </div>
-                    <div class="analysis-item highlight">
-                        <span class="label">☕ Café real</span>
-                        <span class="value">${analysis.realGrams}g</span>
-                        <span class="sub">≈${analysis.spoonDisplay} cucharas</span>
-                    </div>
-                    <div class="analysis-item">
-                        <span class="label">💧 Agua</span>
-                        <span class="value">${water}ml</span>
-                    </div>
-                    <div class="analysis-item">
-                        <span class="label">📊 Relación</span>
-                        <span class="value">1:${analysis.ratio}</span>
-                    </div>
-                </div>
-                
-                <div class="intensity-bar">
-                    <div class="bar-track">
-                        <div class="bar-fill" style="width: ${barPercent}%; background: ${intensity.color};"></div>
-                    </div>
-                    <div class="bar-labels">
-                        <span>Muy Suave</span>
-                        <span style="color: ${intensity.color}; font-weight: 700;">${intensity.icon} ${intensity.level}</span>
-                        <span>Muy Fuerte</span>
-                    </div>
-                </div>
-                
-                <div class="analysis-message">${analysis.message}</div>
-                
-                <div class="analysis-compare">
-                    <div class="compare-box">
-                        <div class="compare-label">Tu preparación</div>
-                        <div class="compare-value">${analysis.realGrams}g</div>
-                        <div class="compare-sub">${analysis.spoonDisplay} cucharas</div>
-                    </div>
-                    <div class="compare-arrow">→</div>
-                    <div class="compare-box recommended">
-                        <div class="compare-label">Recomendación</div>
-                        <div class="compare-value">${analysis.idealGrams}g</div>
-                        <div class="compare-sub">${CoffeeMath.formatSpoon(CoffeeMath.gramsToSpoons(analysis.idealGrams))} cucharas</div>
-                    </div>
-                </div>
-                
-                <div class="analysis-diff">
-                    <span>${analysis.diff > 0 ? '➕' : '➖'} Diferencia: ${Math.abs(analysis.diff).toFixed(1)}g</span>
-                    <span>≈${analysis.diffSpoonDisplay} cucharada${analysis.diffSpoons > 1 ? 's' : ''}</span>
-                </div>
-                
-                <div class="analysis-sugar">
-                    <span>🍯 Azúcar recomendada:</span>
-                    <span>${analysis.sugar > 0 ? `${analysis.sugar} cucharadita${analysis.sugar > 1 ? 's' : ''}` : 'Sin azúcar'}</span>
-                </div>
-                
-                <div class="analysis-note">
-                    <small>💡 La cuchara IMUSA pesa ${CONFIG.spoonWeight}g. El peso real de café = peso total - ${CONFIG.spoonWeight}g.</small>
-                </div>
-            </div>
-        `;
-    }
-
-    // ========================================
-    // ANÁLISIS RÁPIDO (GRAMOS DIRECTOS)
-    // ========================================
-    function analyzeDirect() {
-        const input = document.getElementById('directGrams');
-        const grams = parseFloat(input.value);
-        
-        if (isNaN(grams) || grams <= 0) {
-            document.getElementById('directResult').innerHTML = `
-                <div class="analysis-error">⚠️ Ingresa los gramos de café.</div>
-            `;
-            return;
-        }
-
-        const water = AppState.calculator.water;
-        const strength = AppState.calculator.strength;
-        
-        const ratio = CoffeeMath.calculateRatio(grams, water);
-        const intensity = CoffeeMath.getIntensity(ratio);
-        const spoons = CoffeeMath.gramsToSpoons(grams);
-        const sugar = CoffeeMath.calculateSugar(water, 'medium');
-        
-        const idealRatio = 16.67;
-        const idealGrams = Math.round((water / idealRatio) * 10) / 10;
-        const diff = Math.round((grams - idealGrams) * 10) / 10;
-        const diffSpoons = CoffeeMath.gramsToSpoons(Math.abs(diff));
-        
-        let status = '';
-        let message = '';
-        
-        if (Math.abs(diff) / idealGrams < 0.1) {
-            status = '✅ Excelente';
-            message = 'Tu preparación está dentro del rango recomendado.';
-        } else if (diff > 0) {
-            status = '☕ Más fuerte';
-            message = `Usas ${diff.toFixed(1)}g más de café. Café con mayor cuerpo.`;
-        } else {
-            status = '☕ Más suave';
-            message = `Te faltan ${Math.abs(diff).toFixed(1)}g de café. Café más ligero.`;
-        }
-        
-        const barPercent = Math.min(100, Math.max(0, (ratio - 10) * 10));
-        
-        document.getElementById('directResult').innerHTML = `
-            <div class="analysis-card">
-                <div class="analysis-status">${status}</div>
-                
-                <div class="analysis-grid">
-                    <div class="analysis-item highlight">
-                        <span class="label">☕ Café</span>
-                        <span class="value">${grams}g</span>
-                        <span class="sub">≈${CoffeeMath.formatSpoon(spoons)} cucharas</span>
-                    </div>
-                    <div class="analysis-item">
-                        <span class="label">💧 Agua</span>
-                        <span class="value">${water}ml</span>
-                    </div>
-                    <div class="analysis-item">
-                        <span class="label">📊 Relación</span>
-                        <span class="value">1:${ratio}</span>
-                    </div>
-                    <div class="analysis-item">
-                        <span class="label">${intensity.icon} Intensidad</span>
-                        <span class="value" style="color: ${intensity.color};">${intensity.level}</span>
-                    </div>
-                </div>
-                
-                <div class="intensity-bar">
-                    <div class="bar-track">
-                        <div class="bar-fill" style="width: ${barPercent}%; background: ${intensity.color};"></div>
-                    </div>
-                    <div class="bar-labels">
-                        <span>Muy Suave</span>
-                        <span style="color: ${intensity.color}; font-weight: 700;">${intensity.range}</span>
-                        <span>Muy Fuerte</span>
-                    </div>
-                </div>
-                
-                <div class="analysis-message">${message}</div>
-                
-                <div class="analysis-compare">
-                    <div class="compare-box">
-                        <div class="compare-label">Tu preparación</div>
-                        <div class="compare-value">${grams}g</div>
-                        <div class="compare-sub">${CoffeeMath.formatSpoon(spoons)} cucharas</div>
-                    </div>
-                    <div class="compare-arrow">→</div>
-                    <div class="compare-box recommended">
-                        <div class="compare-label">Recomendación</div>
-                        <div class="compare-value">${idealGrams}g</div>
-                        <div class="compare-sub">${CoffeeMath.formatSpoon(CoffeeMath.gramsToSpoons(idealGrams))} cucharas</div>
-                    </div>
-                </div>
-                
-                <div class="analysis-diff">
-                    <span>${diff > 0 ? '➕' : '➖'} Diferencia: ${Math.abs(diff).toFixed(1)}g</span>
-                    <span>≈${CoffeeMath.formatSpoon(diffSpoons)} cucharada${diffSpoons > 1 ? 's' : ''}</span>
-                </div>
-                
-                <div class="analysis-sugar">
-                    <span>🍯 Azúcar recomendada:</span>
-                    <span>${sugar > 0 ? `${sugar} cucharadita${sugar > 1 ? 's' : ''}` : 'Sin azúcar'}</span>
-                </div>
-            </div>
-        `;
-    }
-
-    // ========================================
-    // CAFÉ INSTANTÁNEO
-    // ========================================
-    function updateInstant() {
-        const water = parseInt(document.getElementById('instantWater').value) || 200;
-        const brand = document.getElementById('instantBrand').value;
-        const strength = document.querySelector('.instant-strength .strength-btn.active')?.dataset.value || 'normal';
-        
-        const brandData = {
-            nescafe: { name: 'Nescafé Tradición', base: 3 },
-            juanvaldez: { name: 'Juan Valdez Instantáneo', base: 2.5 },
-            colcafe: { name: 'Colcafé Clásico', base: 3 },
-            aguila: { name: 'Águila Roja Soluble', base: 4 },
-            sello: { name: 'Sello Rojo Soluble', base: 4 },
-            buendia: { name: 'Buendía Liofilizado', base: 3 }
-        };
-        
-        const brandInfo = brandData[brand] || brandData.nescafe;
-        const ratio = water / 100;
-        const multipliers = { suave: 0.8, normal: 1.0, fuerte: 1.2 };
-        const grams = brandInfo.base * ratio * (multipliers[strength] || 1);
-        const teaspoons = Math.round(grams * 4) / 4;
-        
-        document.getElementById('instantResult').textContent = `${teaspoons} cucharadita${teaspoons > 1 ? 's' : ''}`;
-        document.getElementById('instantSub').textContent = `${brandInfo.name} - Intensidad ${strength}`;
-        document.getElementById('instantWaterDisplay').textContent = `${water} ml`;
-    }
-
-    // ========================================
-    // TEMPORIZADOR
-    // ========================================
-    function startTimer() {
-        if (AppState.timer.running) return;
-        if (AppState.timer.seconds <= 0) {
-            const active = document.querySelector('.timer-preset.active');
-            AppState.timer.seconds = active ? parseInt(active.dataset.seconds) : 180;
-            updateTimerDisplay();
-        }
-        
-        AppState.timer.running = true;
-        AppState.timer.interval = setInterval(() => {
-            if (AppState.timer.seconds <= 0) {
-                clearInterval(AppState.timer.interval);
-                AppState.timer.running = false;
-                document.getElementById('timerStart').textContent = '▶ Iniciar';
-                document.getElementById('timerStart').disabled = false;
-                beep();
-                return;
-            }
-            AppState.timer.seconds--;
-            updateTimerDisplay();
-        }, 1000);
-        
-        document.getElementById('timerStart').textContent = '⏳';
-        document.getElementById('timerStart').disabled = true;
-    }
-
-    function pauseTimer() {
-        if (!AppState.timer.running) return;
-        AppState.timer.running = false;
-        clearInterval(AppState.timer.interval);
-        document.getElementById('timerStart').textContent = '▶ Reanudar';
-        document.getElementById('timerStart').disabled = false;
-    }
-
-    function resetTimer() {
-        AppState.timer.running = false;
-        clearInterval(AppState.timer.interval);
-        AppState.timer.seconds = 0;
-        updateTimerDisplay();
-        document.getElementById('timerStart').textContent = '▶ Iniciar';
-        document.getElementById('timerStart').disabled = false;
-        document.querySelectorAll('.timer-preset').forEach(b => b.classList.remove('active'));
-    }
-
-    function updateTimerDisplay() {
-        const mins = String(Math.floor(AppState.timer.seconds / 60)).padStart(2, '0');
-        const secs = String(AppState.timer.seconds % 60).padStart(2, '0');
-        document.getElementById('timerMinutes').textContent = mins;
-        document.getElementById('timerSeconds').textContent = secs;
-    }
-
-    function beep() {
-        try {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.frequency.value = 880;
-            gain.gain.value = 0.3;
-            osc.start();
-            setTimeout(() => osc.stop(), 300);
-            setTimeout(() => {
-                const osc2 = audioCtx.createOscillator();
-                const gain2 = audioCtx.createGain();
-                osc2.connect(gain2);
-                gain2.connect(audioCtx.destination);
-                osc2.frequency.value = 660;
-                gain2.gain.value = 0.3;
-                osc2.start();
-                setTimeout(() => osc2.stop(), 300);
-            }, 400);
-        } catch (e) {}
-    }
-
-    // ========================================
-    // NAVEGACIÓN Y TEMA
+    // NAVEGACIÓN
     // ========================================
     function navigateTo(section) {
         document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
@@ -535,15 +69,23 @@
         AppState.currentSection = section;
     }
 
-    function toggleTheme() {
-        const next = AppState.theme === 'light' ? 'dark' : 'light';
-        AppState.theme = next;
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('imusaTheme', next);
+    // ========================================
+    // INICIALIZACIÓN
+    // ========================================
+    function init() {
+        console.log('☕ Mi Barista Imusa - Iniciando...');
+        loadTheme();
+        bindEvents();
+        updateCalculator();
+        renderBrands();
+        renderRecipes();
+        renderGuides();
+        updateInstantCoffee();
+        console.log('✅ Aplicación iniciada correctamente');
     }
 
     // ========================================
-    // EVENTOS
+    // EVENT BINDING
     // ========================================
     function bindEvents() {
         // Navegación
@@ -554,9 +96,18 @@
         });
 
         // Tema
-        document.getElementById('themeToggle')?.addEventListener('click', toggleTheme);
+        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 
-        // Calculadora agua
+        // Menú móvil
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            const nav = document.querySelector('.main-nav');
+            nav.style.display = nav.style.display === 'none' ? 'flex' : 'none';
+        });
+
+        // Favoritos
+        document.getElementById('favoritesBtn').addEventListener('click', showFavorites);
+
+        // ===== CALCULADORA PRINCIPAL =====
         document.querySelectorAll('.preset-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
@@ -567,7 +118,7 @@
             });
         });
 
-        document.getElementById('waterSlider')?.addEventListener('input', function() {
+        document.getElementById('waterSlider').addEventListener('input', function() {
             const val = parseInt(this.value);
             AppState.calculator.water = val;
             document.querySelectorAll('.preset-btn').forEach(b => {
@@ -576,74 +127,506 @@
             updateCalculator();
         });
 
-        // Intensidad
-        document.querySelectorAll('.strength-btn').forEach(btn => {
+        document.querySelectorAll('.strength-btn:not(.instant-strength .strength-btn)').forEach(btn => {
             btn.addEventListener('click', function() {
-                document.querySelectorAll('.strength-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.strength-btn:not(.instant-strength .strength-btn)').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 AppState.calculator.strength = this.dataset.value;
                 updateCalculator();
             });
         });
 
-        // Análisis con báscula
-        document.getElementById('scaleAnalyze')?.addEventListener('click', analyzeWithScale);
-        document.getElementById('scaleInput')?.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') analyzeWithScale();
+        document.getElementById('mainBrand').addEventListener('change', function() {
+            AppState.calculator.brand = this.value;
+            updateCalculator();
         });
 
-        // Análisis directo
-        document.getElementById('directAnalyze')?.addEventListener('click', analyzeDirect);
-        document.getElementById('directGrams')?.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') analyzeDirect();
-        });
-
-        // Calculadora personalizada
-        document.getElementById('calculateCustom')?.addEventListener('click', function() {
-            const water = parseInt(document.getElementById('customWater').value);
-            if (isNaN(water) || water < 100 || water > 600) {
-                document.getElementById('customResult').innerHTML = '<p class="error">⚠️ Ingresa 100-600ml</p>';
-                return;
-            }
-            const ratio = { suave: 18, normal: 16.67, fuerte: 14 }[AppState.calculator.strength] || 16.67;
-            const grams = Math.round((water / ratio) * 10) / 10;
-            const spoons = CoffeeMath.gramsToSpoons(grams);
-            const sugar = CoffeeMath.calculateSugar(water, 'medium');
-            document.getElementById('customResult').innerHTML = `
-                <p>✅ ${water}ml → ${CoffeeMath.formatSpoon(spoons)} cucharas (${grams}g)</p>
-                <p class="sub">🍯 ${sugar > 0 ? `${sugar} cdt${sugar > 1 ? 's' : ''}` : 'Sin azúcar'}</p>
-            `;
+        document.getElementById('calculateCustom').addEventListener('click', calculateCustom);
+        document.getElementById('customWater').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') calculateCustom();
         });
 
         // Café instantáneo
-        document.getElementById('instantWater')?.addEventListener('input', updateInstant);
-        document.getElementById('instantBrand')?.addEventListener('change', updateInstant);
+        document.getElementById('instantWater').addEventListener('input', updateInstantCoffee);
+        document.getElementById('instantBrand').addEventListener('change', updateInstantCoffee);
         document.querySelectorAll('.instant-strength .strength-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.instant-strength .strength-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
-                updateInstant();
+                updateInstantCoffee();
             });
         });
 
-        // Temporizador
-        document.getElementById('timerStart')?.addEventListener('click', startTimer);
-        document.getElementById('timerPause')?.addEventListener('click', pauseTimer);
-        document.getElementById('timerReset')?.addEventListener('click', resetTimer);
+        // ===== ANÁLISIS CON BÁSCULA =====
+        document.getElementById('analyzeScale').addEventListener('click', analyzeWithScale);
+        document.getElementById('totalWeight').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') analyzeWithScale();
+        });
+        document.getElementById('scaleWater').addEventListener('input', function() {
+            document.getElementById('scaleWaterDisplay').textContent = this.value + ' ml';
+        });
+
+        // ===== CALCULADORA DE COSTO =====
+        document.getElementById('calculateCost').addEventListener('click', calculateCost);
+
+        // ===== TEMPORIZADOR =====
+        document.getElementById('timerStart').addEventListener('click', startTimer);
+        document.getElementById('timerPause').addEventListener('click', pauseTimer);
+        document.getElementById('timerReset').addEventListener('click', resetTimer);
         document.querySelectorAll('.timer-preset').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.timer-preset').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
-                AppState.timer.seconds = parseInt(this.dataset.seconds);
+                timerSeconds = parseInt(this.dataset.seconds);
                 updateTimerDisplay();
             });
         });
 
-        // Modal
-        document.querySelector('.modal-close')?.addEventListener('click', closeModal);
-        document.getElementById('recipeModal')?.addEventListener('click', function(e) {
+        // ===== RECETAS =====
+        document.getElementById('recipeSearch').addEventListener('input', filterRecipes);
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                filterRecipes();
+            });
+        });
+
+        // ===== MODAL =====
+        document.querySelector('.modal-close').addEventListener('click', closeModal);
+        document.getElementById('recipeModal').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
         });
+
+        // ===== CONVERSOR =====
+        document.getElementById('converterBtn').addEventListener('click', convertUnits);
+
+        // Teclado
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+    }
+
+    // ========================================
+    // CALCULADORA PRINCIPAL (SIN COSTO)
+    // ========================================
+    function updateCalculator() {
+        const water = AppState.calculator.water;
+        const strength = AppState.calculator.strength;
+        const brandId = document.getElementById('mainBrand').value || 'tostao';
+        const brand = CoffeeMath.getBrand(brandId);
+
+        const dose = CoffeeMath.getRecommendedDose(brandId, water);
+        const factor = { suave: 0.85, normal: 1.0, fuerte: 1.15 }[strength] || 1.0;
+        const finalGrams = Math.round(dose.grams * factor * 10) / 10;
+        const finalSpoons = CoffeeMath.gramsToSpoons(finalGrams);
+        const sugar = CoffeeMath.calculateSugar(water, 'medium');
+        const caffeine = Math.round(finalGrams * 8);
+
+        document.getElementById('coffeeSpoons').textContent = CoffeeMath.formatSpoon(finalSpoons) + ' cucharas';
+        document.getElementById('coffeeGrams').textContent = `(${finalGrams}g aprox.)`;
+        document.getElementById('caffeineAmount').textContent = `~${caffeine} mg`;
+        document.getElementById('sugarAmount').textContent = sugar > 0 ? `${sugar} cucharadita${sugar > 1 ? 's' : ''}` : 'Sin azúcar';
+        document.getElementById('brewTime').textContent = `~${Math.round(water / 60 + 2)} min`;
+        document.getElementById('waterDisplay').textContent = `${water} ml`;
+        document.getElementById('brandDisplay').textContent = `☕ ${brand.name}`;
+
+        updateTip(water);
+    }
+
+    function updateTip(water) {
+        const tip = document.getElementById('dynamicTip');
+        if (!tip) return;
+        if (water <= 150) {
+            tip.textContent = '💡 Volumen pequeño: El sabor será más concentrado. Perfecto para una taza de café expreso.';
+        } else if (water <= 300) {
+            tip.textContent = '💡 Volumen ideal para una taza grande. Buen equilibrio de sabor.';
+        } else if (water <= 450) {
+            tip.textContent = '💡 Para 2-3 tazas. Asegúrate de repartir bien el café en el filtro.';
+        } else {
+            tip.textContent = '💡 Capacidad máxima. Consume el café recién preparado para disfrutar todo su aroma.';
+        }
+    }
+
+    function calculateCustom() {
+        const input = document.getElementById('customWater');
+        const water = parseInt(input.value);
+        if (isNaN(water) || water < 100 || water > 600) {
+            document.getElementById('customResult').innerHTML = '<p style="color:var(--danger-color);">⚠️ Ingresa un valor entre 100 y 600 ml</p>';
+            return;
+        }
+        const brandId = document.getElementById('mainBrand').value || 'tostao';
+        const dose = CoffeeMath.getRecommendedDose(brandId, water);
+        const sugar = CoffeeMath.calculateSugar(water, 'medium');
+        document.getElementById('customResult').innerHTML = `
+            <p>✅ <strong>${water} ml</strong> → <strong>${CoffeeMath.formatSpoon(dose.spoons)}</strong> cucharas (${dose.grams} g)</p>
+            <p style="font-size:0.85rem;color:var(--text-muted);">
+                ⏱ ~${Math.round(water/60+2)} min • 🍯 ${sugar > 0 ? sugar + ' cdt' + (sugar>1?'s':'') : 'Sin azúcar'}
+            </p>
+        `;
+    }
+
+    // ========================================
+    // CAFÉ INSTANTÁNEO
+    // ========================================
+    function updateInstantCoffee() {
+        const water = parseInt(document.getElementById('instantWater').value) || 200;
+        const brand = document.getElementById('instantBrand').value;
+        const strength = document.querySelector('.instant-strength .strength-btn.active')?.dataset.value || 'normal';
+
+        const brandData = INSTANT_COFFEE_MEASURES[brand] || { base: 3, name: 'Nescafé' };
+        const baseGrams = brandData.base;
+        const ratio = water / 100;
+        const factor = { suave: 0.8, normal: 1.0, fuerte: 1.2 }[strength] || 1.0;
+        const grams = baseGrams * ratio * factor;
+        const teaspoons = Math.round(grams * 2) / 2;
+
+        document.getElementById('instantResult').textContent = teaspoons + ' cucharadita' + (teaspoons > 1 ? 's' : '');
+        document.getElementById('instantSub').textContent = `${brandData.name} - Intensidad ${strength}`;
+        document.getElementById('instantWaterDisplay').textContent = water + ' ml';
+    }
+
+    // ========================================
+    // ANÁLISIS CON BÁSCULA
+    // ========================================
+    function analyzeWithScale() {
+        const totalWeight = parseFloat(document.getElementById('totalWeight').value);
+        const water = parseInt(document.getElementById('scaleWater').value) || 250;
+        const brandId = document.getElementById('scaleBrand').value || 'tostao';
+
+        if (isNaN(totalWeight) || totalWeight <= 7) {
+            document.getElementById('scaleResult').innerHTML = `
+                <div class="analysis-card" style="border-left-color:var(--danger-color);">
+                    <p style="color:var(--danger-color);">⚠️ Ingresa un peso total mayor a 7g (peso de la cuchara).</p>
+                </div>
+            `;
+            return;
+        }
+
+        const analysis = CoffeeMath.analyzeWithScale(totalWeight, water, brandId);
+        if (analysis.error) {
+            document.getElementById('scaleResult').innerHTML = `
+                <div class="analysis-card" style="border-left-color:var(--danger-color);">
+                    <p style="color:var(--danger-color);">⚠️ ${analysis.error}</p>
+                </div>
+            `;
+            return;
+        }
+
+        const strengthPercent = Math.max(0, Math.min(100, (analysis.ratio - 10) * 10));
+
+        document.getElementById('scaleResult').innerHTML = `
+            <div class="analysis-card">
+                <div class="analysis-status" style="border-left-color:${analysis.color};">${analysis.status}</div>
+                <div class="analysis-info">
+                    <div class="info-item"><span class="info-label">⚖️ Peso total</span><span class="info-value">${analysis.totalWeight}g (café + cuchara)</span></div>
+                    <div class="info-item"><span class="info-label">☕ Café real</span><span class="info-value">${analysis.coffeeGrams}g ≈${analysis.spoonsDisplay} cucharas</span></div>
+                    <div class="info-item"><span class="info-label">💧 Agua</span><span class="info-value">${analysis.water_ml}ml</span></div>
+                    <div class="info-item"><span class="info-label">📊 Relación</span><span class="info-value">1:${analysis.ratio}</span></div>
+                </div>
+
+                <div class="strength-bar-container">
+                    <div class="strength-fill" style="width:${strengthPercent}%;"></div>
+                </div>
+                <div class="strength-labels">
+                    <span>Muy Suave</span>
+                    <span style="font-weight:700;color:${analysis.color};">${analysis.emoji} ${analysis.strength}</span>
+                    <span>Muy Fuerte</span>
+                </div>
+
+                <div class="analysis-message"><p>${analysis.message}</p></div>
+
+                <div class="analysis-compare">
+                    <div class="compare-item">
+                        <span class="compare-label">Tu preparación</span>
+                        <span class="compare-value">${analysis.coffeeGrams}g</span>
+                        <span class="compare-sub">≈${analysis.spoonsDisplay} cucharas</span>
+                    </div>
+                    <div class="compare-arrow">→</div>
+                    <div class="compare-item recommended">
+                        <span class="compare-label">Recomendación</span>
+                        <span class="compare-value">${analysis.recommended.grams}g</span>
+                        <span class="compare-sub">≈${analysis.recommended.spoonsDisplay} cucharas</span>
+                    </div>
+                </div>
+
+                <div class="analysis-diff">
+                    <span>${analysis.diff > 0 ? '➕' : '➖'} Diferencia: ${Math.abs(analysis.diff).toFixed(1)}g</span>
+                    <span>≈${analysis.diffSpoonsDisplay} cuchara${analysis.diffSpoons > 1 ? 's' : ''}</span>
+                </div>
+
+                <div class="analysis-sugar">
+                    <span>🍯 Azúcar recomendada:</span>
+                    <span>${analysis.sugar > 0 ? analysis.sugar + ' cucharadita' + (analysis.sugar > 1 ? 's' : '') : 'Sin azúcar'}</span>
+                </div>
+
+                <div class="analysis-tip">
+                    💡 La cuchara IMUSA pesa 7g. El peso real de café = peso total - 7g.
+                </div>
+            </div>
+        `;
+    }
+
+    // ========================================
+    // CALCULADORA DE COSTO
+    // ========================================
+    function calculateCost() {
+        const price = parseFloat(document.getElementById('costPrice').value);
+        const weight = parseFloat(document.getElementById('costWeight').value);
+        const spoons = parseFloat(document.getElementById('costSpoons').value);
+        const brandId = document.getElementById('costBrand').value || 'tostao';
+        const brand = CoffeeMath.getBrand(brandId);
+
+        if (!price || !weight || !spoons) {
+            document.getElementById('costResult').innerHTML = `
+                <div class="analysis-card" style="border-left-color:var(--danger-color);">
+                    <p style="color:var(--danger-color);">⚠️ Por favor, completa todos los campos.</p>
+                </div>
+            `;
+            return;
+        }
+
+        const gramsUsed = spoons * COFFEE_STANDARDS.imusa.spoon_grams;
+        const pricePerGram = price / weight;
+        const costPerCup = pricePerGram * gramsUsed;
+        const cupsPerBag = weight / gramsUsed;
+        const monthlyCost = costPerCup * 30;
+
+        document.getElementById('costResult').innerHTML = `
+            <div class="analysis-card">
+                <div class="cost-grid">
+                    <div class="cost-item"><span class="cost-label">💵 Precio por gramo</span><span class="cost-value">$${pricePerGram.toFixed(2)}</span></div>
+                    <div class="cost-item"><span class="cost-label">☕ Costo por taza</span><span class="cost-value">$${costPerCup.toFixed(2)}</span></div>
+                    <div class="cost-item"><span class="cost-label">📦 Tazas por paquete</span><span class="cost-value">${cupsPerBag.toFixed(1)}</span></div>
+                    <div class="cost-item"><span class="cost-label">📅 Costo mensual</span><span class="cost-value">$${monthlyCost.toFixed(2)}</span></div>
+                </div>
+                <div style="margin-top:12px;padding:8px 12px;background:var(--bg-input);border-radius:var(--radius-sm);font-size:0.85rem;">
+                    <p>📊 <strong>${spoons} cucharadas</strong> = ${gramsUsed}g de café</p>
+                    <p style="font-size:0.75rem;color:var(--text-muted);">Marca: ${brand.name}</p>
+                </div>
+            </div>
+        `;
+    }
+
+    // ========================================
+    // TEMPORIZADOR
+    // ========================================
+    let timerInterval = null;
+    let timerRunning = false;
+    let timerSeconds = 180;
+
+    function startTimer() {
+        if (timerRunning) return;
+        if (timerSeconds <= 0) {
+            const activePreset = document.querySelector('.timer-preset.active');
+            if (activePreset) timerSeconds = parseInt(activePreset.dataset.seconds);
+            else timerSeconds = 180;
+            updateTimerDisplay();
+        }
+        timerRunning = true;
+        timerInterval = setInterval(() => {
+            if (timerSeconds <= 0) { timerComplete(); return; }
+            timerSeconds--;
+            updateTimerDisplay();
+        }, 1000);
+        document.getElementById('timerStart').textContent = '⏳ Ejecutando...';
+        document.getElementById('timerStart').disabled = true;
+    }
+
+    function pauseTimer() {
+        if (!timerRunning) return;
+        timerRunning = false;
+        clearInterval(timerInterval);
+        document.getElementById('timerStart').textContent = '▶ Reanudar';
+        document.getElementById('timerStart').disabled = false;
+    }
+
+    function resetTimer() {
+        timerRunning = false;
+        clearInterval(timerInterval);
+        timerSeconds = 0;
+        updateTimerDisplay();
+        document.getElementById('timerStart').textContent = '▶ Iniciar';
+        document.getElementById('timerStart').disabled = false;
+        document.querySelectorAll('.timer-preset').forEach(b => b.classList.remove('active'));
+    }
+
+    function updateTimerDisplay() {
+        const mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+        const secs = String(timerSeconds % 60).padStart(2, '0');
+        document.getElementById('timerMinutes').textContent = mins;
+        document.getElementById('timerSeconds').textContent = secs;
+    }
+
+    function timerComplete() {
+        pauseTimer();
+        document.getElementById('timerStart').textContent = '▶ Iniciar';
+        document.getElementById('timerStart').disabled = false;
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 880;
+            osc.type = 'sine';
+            gain.gain.value = 0.3;
+            osc.start();
+            setTimeout(() => osc.stop(), 500);
+            setTimeout(() => {
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+                osc2.frequency.value = 660;
+                osc2.type = 'sine';
+                gain2.gain.value = 0.3;
+                osc2.start();
+                setTimeout(() => osc2.stop(), 500);
+            }, 600);
+        } catch (e) {}
+    }
+
+    // ========================================
+    // RECETAS
+    // ========================================
+    function renderRecipes() {
+        const container = document.getElementById('recipeGrid');
+        if (!container) return;
+        const recipes = RECIPES.slice(0, 6);
+        container.innerHTML = recipes.map(recipe => `
+            <div class="recipe-card" onclick="window.openRecipe('${recipe.id}')">
+                <div class="recipe-card-image">${recipe.image || '☕'}</div>
+                <div class="recipe-card-content">
+                    <h4>${recipe.name}</h4>
+                    <p>${recipe.time} min • ${recipe.difficulty}</p>
+                </div>
+                <button class="favorite-btn ${AppState.favorites.includes(recipe.id) ? 'active' : ''}" 
+                        onclick="event.stopPropagation(); window.toggleFavorite('${recipe.id}')">♥</button>
+            </div>
+        `).join('');
+
+        const popularContainer = document.getElementById('popularRecipes');
+        if (popularContainer) {
+            popularContainer.innerHTML = recipes.slice(0, 4).map(recipe => `
+                <div class="recipe-card" onclick="window.openRecipe('${recipe.id}')">
+                    <div class="recipe-card-image">${recipe.image || '☕'}</div>
+                    <div class="recipe-card-content">
+                        <h4>${recipe.name}</h4>
+                        <p>${recipe.time} min • ${recipe.difficulty}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
+    function filterRecipes() {
+        const query = document.getElementById('recipeSearch').value.toLowerCase();
+        const filter = document.querySelector('.filter-btn.active')?.dataset.filter || 'all';
+        let filtered = RECIPES.filter(r => {
+            const matchName = r.name.toLowerCase().includes(query);
+            const matchFilter = filter === 'all' || r.tags.includes(filter);
+            return matchName && matchFilter;
+        });
+        const container = document.getElementById('recipeGrid');
+        if (filtered.length === 0) {
+            container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:20px;">No se encontraron recetas</p>';
+            return;
+        }
+        container.innerHTML = filtered.map(recipe => `
+            <div class="recipe-card" onclick="window.openRecipe('${recipe.id}')">
+                <div class="recipe-card-image">${recipe.image || '☕'}</div>
+                <div class="recipe-card-content">
+                    <h4>${recipe.name}</h4>
+                    <p>${recipe.time} min • ${recipe.difficulty}</p>
+                </div>
+                <button class="favorite-btn ${AppState.favorites.includes(recipe.id) ? 'active' : ''}" 
+                        onclick="event.stopPropagation(); window.toggleFavorite('${recipe.id}')">♥</button>
+            </div>
+        `).join('');
+    }
+
+    function openRecipe(recipeId) {
+        const recipe = RECIPES.find(r => r.id === recipeId);
+        if (!recipe) return;
+        const modal = document.getElementById('recipeModal');
+        const detail = document.getElementById('recipeDetail');
+        if (!modal || !detail) return;
+
+        const isFavorite = AppState.favorites.includes(recipe.id);
+        const spoons = CoffeeMath.gramsToSpoons(recipe.coffee_grams || 10.5);
+
+        detail.innerHTML = `
+            <div class="recipe-detail-header">
+                <span class="recipe-detail-icon">${recipe.image || '☕'}</span>
+                <h2>${recipe.name}</h2>
+                <div class="recipe-meta">
+                    <span>⏱ ${recipe.time} min</span>
+                    <span>📊 ${recipe.difficulty}</span>
+                    <span>🍽 ${recipe.servings || 1}</span>
+                </div>
+            </div>
+            <div class="recipe-detail-section">
+                <h3>📋 Ingredientes</h3>
+                <ul>
+                    <li>💧 Agua: ${recipe.water_ml}ml</li>
+                    <li>☕ Café: ${CoffeeMath.formatSpoon(spoons)} cucharas (${recipe.coffee_grams}g)</li>
+                    ${recipe.milk_ml ? `<li>🥛 Leche: ${recipe.milk_ml}ml</li>` : ''}
+                    ${recipe.sugar_spoons ? `<li>🍯 Azúcar: ${recipe.sugar_spoons} cucharadita${recipe.sugar_spoons > 1 ? 's' : ''}</li>` : ''}
+                    ${recipe.special_ingredients ? recipe.special_ingredients.map(i => `<li>${i}</li>`).join('') : ''}
+                </ul>
+            </div>
+            <div class="recipe-detail-section">
+                <h3>👨‍🍳 Preparación</h3>
+                <ol>${recipe.steps.map(s => `<li>${s}</li>`).join('')}</ol>
+            </div>
+            ${recipe.tips ? `<div class="recipe-detail-section"><h3>💡 Consejo</h3><p>${recipe.tips}</p></div>` : ''}
+            ${recipe.variants ? `<div class="recipe-detail-section"><h3>🔄 Variantes</h3><p>${recipe.variants}</p></div>` : ''}
+            <div class="recipe-actions">
+                <button class="btn-primary" onclick="window.toggleFavorite('${recipe.id}')">${isFavorite ? '❤️ Quitar de favoritos' : '🤍 Agregar a favoritos'}</button>
+                <button class="btn-secondary" onclick="window.print()">🖨️ Imprimir</button>
+            </div>
+        `;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        AppState.history = AppState.history.filter(id => id !== recipe.id);
+        AppState.history.unshift(recipe.id);
+        if (AppState.history.length > 20) AppState.history.pop();
+        Utils.saveToStorage('imusaHistory', AppState.history);
+    }
+
+    function toggleFavorite(recipeId) {
+        const index = AppState.favorites.indexOf(recipeId);
+        if (index > -1) AppState.favorites.splice(index, 1);
+        else AppState.favorites.push(recipeId);
+        Utils.saveToStorage('imusaFavorites', AppState.favorites);
+        renderRecipes();
+        const modal = document.getElementById('recipeModal');
+        if (modal && modal.classList.contains('active')) {
+            const recipe = RECIPES.find(r => r.id === recipeId);
+            if (recipe) openRecipe(recipeId);
+        }
+    }
+
+    function showFavorites() {
+        if (AppState.favorites.length === 0) {
+            alert('📭 No tienes recetas favoritas guardadas.');
+            return;
+        }
+        navigateTo('recipes');
+        const container = document.getElementById('recipeGrid');
+        const favRecipes = RECIPES.filter(r => AppState.favorites.includes(r.id));
+        container.innerHTML = favRecipes.map(recipe => `
+            <div class="recipe-card" onclick="window.openRecipe('${recipe.id}')">
+                <div class="recipe-card-image">${recipe.image || '☕'}</div>
+                <div class="recipe-card-content">
+                    <h4>${recipe.name}</h4>
+                    <p>${recipe.time} min • ${recipe.difficulty}</p>
+                </div>
+                <button class="favorite-btn active" onclick="event.stopPropagation(); window.toggleFavorite('${recipe.id}')">♥</button>
+            </div>
+        `).join('');
     }
 
     function closeModal() {
@@ -655,35 +638,92 @@
     }
 
     // ========================================
-    // INICIALIZACIÓN
+    // MARCAS
     // ========================================
-    function init() {
-        // Cargar tema
-        const savedTheme = localStorage.getItem('imusaTheme') || 'light';
-        AppState.theme = savedTheme;
-        document.documentElement.setAttribute('data-theme', savedTheme);
-
-        bindEvents();
-        updateCalculator();
-        updateInstant();
-        updateTimerDisplay();
-
-        // Preset inicial de agua
-        document.querySelector('.preset-btn[data-value="250"]')?.classList.add('active');
-        document.querySelector('.strength-btn[data-value="normal"]')?.classList.add('active');
-        document.querySelector('.timer-preset[data-seconds="180"]')?.classList.add('active');
-        document.querySelector('.instant-strength .strength-btn[data-value="normal"]')?.classList.add('active');
-
-        console.log('☕ Mi Barista Imusa - Iniciado correctamente');
+    function renderBrands() {
+        const container = document.getElementById('brandsList');
+        if (!container) return;
+        const topBrands = BRANDS.slice(0, 12);
+        container.innerHTML = topBrands.map(brand => `
+            <div class="brand-chip" onclick="window.showBrand('${brand.id}')">
+                <span class="brand-name">${brand.emoji} ${brand.name}</span>
+                <span class="brand-intensity">${brand.intensity}/10</span>
+            </div>
+        `).join('');
     }
 
-    // Exponer globalmente
-    window.navigateTo = navigateTo;
-    window.toggleTheme = toggleTheme;
-    window.closeModal = closeModal;
-    window.analyzeWithScale = analyzeWithScale;
-    window.analyzeDirect = analyzeDirect;
+    function showBrand(brandId) {
+        const brand = BRANDS.find(b => b.id === brandId);
+        if (!brand) return;
+        const spoons = CoffeeMath.formatSpoon(brand.spoon_250ml || 1.5);
+        alert(
+`🏷️ ${brand.name}
 
+${brand.description}
+
+📌 Tipo: ${brand.type}
+📍 Origen: ${brand.origin || 'Colombia'}
+🔄 Molienda: ${brand.grind}
+⚡ Intensidad: ${brand.intensity}/10
+🔬 Acidez: ${brand.acidity || 'Media'}
+💪 Cuerpo: ${brand.body || 'Medio'}
+🍫 Notas: ${brand.flavor_notes ? brand.flavor_notes.join(', ') : 'No disponible'}
+
+📊 Dosis para 250ml: ${spoons} cucharas (${brand.grams_250ml}g)
+☕ Mejor para: ${brand.best_for ? brand.best_for.join(', ') : 'Todo tipo'}`
+        );
+    }
+
+    // ========================================
+    // GUÍAS
+    // ========================================
+    function renderGuides() {
+        const container = document.getElementById('guidesGrid');
+        if (!container) return;
+        container.innerHTML = GUIDES.map(guide => `
+            <div class="guide-card" onclick="window.showGuide('${guide.id}')">
+                <h3>${guide.icon} ${guide.title}</h3>
+                <p>${guide.content.substring(0, 80)}${guide.content.length > 80 ? '...' : ''}</p>
+            </div>
+        `).join('');
+    }
+
+    function showGuide(guideId) {
+        const guide = GUIDES.find(g => g.id === guideId);
+        if (!guide) return;
+        alert(`📚 ${guide.title}\n\n${guide.content}`);
+    }
+
+    // ========================================
+    // CONVERSOR
+    // ========================================
+    function convertUnits() {
+        const value = parseFloat(document.getElementById('converterValue').value);
+        const from = document.getElementById('converterFrom').value;
+        const to = document.getElementById('converterTo').value;
+        if (isNaN(value) || value <= 0) {
+            document.getElementById('converterResult').innerHTML = '<p style="color:var(--danger-color);">⚠️ Ingresa un valor válido</p>';
+            return;
+        }
+        const conversions = { ml: 1, g: 1, tbsp: 14.79, tsp: 4.93, oz: 29.57, cup: 236.59 };
+        let base = value * conversions[from];
+        let result = base / conversions[to];
+        document.getElementById('converterResult').innerHTML = `<p><strong>${value}</strong> ${from} = <strong>${result.toFixed(2)}</strong> ${to}</p>`;
+    }
+
+    // ========================================
+    // EXPONER GLOBALES
+    // ========================================
+    window.navigateTo = navigateTo;
+    window.openRecipe = openRecipe;
+    window.toggleFavorite = toggleFavorite;
+    window.showBrand = showBrand;
+    window.showGuide = showGuide;
+    window.closeModal = closeModal;
+
+    // ========================================
+    // INICIALIZAR
+    // ========================================
     document.addEventListener('DOMContentLoaded', init);
 
 })();
