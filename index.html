@@ -282,7 +282,7 @@
                 </div>
             </section>
 
-            <!-- ========== ANÁLISIS CON BÁSCULA ========== -->
+            <!-- ========== ANÁLISIS CON BÁSCULA (MEJORADO) ========== -->
             <section id="analysis" class="section" role="tabpanel" aria-label="Análisis">
                 <div class="analysis-container">
                     <h2>⚖️ Análisis con Báscula</h2>
@@ -309,24 +309,60 @@
                         </select>
                     </div>
 
-                    <div class="scale-input-group">
-                        <div class="input-wrapper">
-                            <label for="totalWeight">Peso total (café + cuchara)</label>
-                            <input type="number" id="totalWeight" placeholder="Ej: 24" min="8" step="0.5">
-                            <span class="input-hint">La cuchara IMUSA pesa 7g</span>
+                    <!-- Selector de Intensidad -->
+                    <div class="form-group">
+                        <label>☕ Intensidad deseada</label>
+                        <div class="strength-selector" id="scaleStrengthSelector">
+                            <button class="strength-btn" data-value="suave">☕ Suave</button>
+                            <button class="strength-btn active" data-value="normal">☕ Normal</button>
+                            <button class="strength-btn" data-value="fuerte">☕ Fuerte</button>
                         </div>
-                        <button id="analyzeScale" class="btn-primary">📊 Analizar</button>
+                        <div id="scaleStrengthDesc" class="strength-description">
+                            Balanceada. Recomendación general para cafeteras de goteo.
+                        </div>
                     </div>
 
+                    <!-- Peso con botones de cuchara -->
+                    <div class="form-group">
+                        <label for="totalWeight">⚖️ Peso total (café + cuchara)</label>
+                        <div class="scale-input-group">
+                            <div class="input-wrapper">
+                                <input type="number" id="totalWeight" placeholder="Ej: 24" min="8" step="0.5" value="12">
+                                <span class="input-hint">La cuchara IMUSA pesa 7g</span>
+                            </div>
+                            <div class="spoon-buttons">
+                                <button class="spoon-btn" data-action="add">➕ Añadir cuchara</button>
+                                <button class="spoon-btn" data-action="remove">➖ Quitar cuchara</button>
+                                <button class="spoon-btn" data-action="reset">🔄 Reiniciar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agua ajustable -->
                     <div class="form-group" style="margin-top:12px;">
                         <label for="scaleWater">💧 Agua (ml)</label>
                         <input type="range" id="scaleWater" min="100" max="600" value="250" step="10">
                         <span id="scaleWaterDisplay">250 ml</span>
                     </div>
 
+                    <!-- Botón Analizar -->
+                    <button id="analyzeScale" class="btn-primary" style="width:100%;">📊 Analizar</button>
+
+                    <!-- Resultado -->
                     <div id="scaleResult"></div>
 
-                    
+                    <!-- Consejo de la cuchara -->
+                    <div class="spoon-tip" style="margin-top:16px;">
+                        <div class="tip-content">
+                            <span class="tip-icon">🥄</span>
+                            <div>
+                                <strong>1 cuchara dosificadora IMUSA = 7 gramos</strong>
+                                <p class="tip-text">La cuchara provista con tu cafetera Imusa tiene una capacidad de 7g de café molido de granulometría media.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
             <!-- ========== RECETAS ========== -->
             <section id="recipes" class="section" role="tabpanel" aria-label="Recetas">
