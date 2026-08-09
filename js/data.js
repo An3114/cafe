@@ -38,7 +38,7 @@ const COFFEE_STANDARDS = {
 };
 
 // ========================================
-// 2. MARCAS DE CAFÉ (16 MARCAS)
+// 2. MARCAS DE CAFÉ (15 MARCAS)
 // ========================================
 const BRANDS = [
     {
@@ -521,64 +521,6 @@ const CoffeeMath = {
         const grams = water_ml * sugarPerMl;
         const teaspoons = grams / 5;
         return Math.round(teaspoons * 4) / 4;
-    },
-    analyzeWithScale: function(totalWeight, water_ml, brandId) {
-        const spoonWeight = COFFEE_STANDARDS.imusa.spoon_grams;
-        const coffeeGrams = totalWeight - spoonWeight;
-        if (coffeeGrams <= 0) {
-            return { error: 'El peso total debe ser mayor a 7g (peso de la cuchara)' };
-        }
-        const brand = this.getBrand(brandId);
-        const recommended = this.getRecommendedDose(brandId, water_ml);
-        const diff = coffeeGrams - recommended.grams;
-        const diffSpoons = this.gramsToSpoons(Math.abs(diff));
-        const ratio = water_ml / coffeeGrams;
-        const spoons = this.gramsToSpoons(coffeeGrams);
-
-        let strength = '', level = '', color = '', emoji = '☕';
-        if (ratio >= 20) { strength = 'Muy Suave'; level = 'muy-suave'; color = '#0d47a1'; }
-        else if (ratio >= 17) { strength = 'Suave'; level = 'suave'; color = '#2e7d32'; }
-        else if (ratio >= 14.5) { strength = 'Normal'; level = 'normal'; color = '#e65100'; }
-        else if (ratio >= 12) { strength = 'Fuerte'; level = 'fuerte'; color = '#bf360c'; }
-        else { strength = 'Muy Fuerte'; level = 'muy-fuerte'; color = '#880e4f'; }
-
-        let status = '', message = '';
-        if (Math.abs(diff) / recommended.grams < 0.05) {
-            status = '✅ ¡Perfecto!';
-            message = 'Tu preparación está en el punto exacto. ¡Excelente trabajo!';
-        } else if (diff > 0) {
-            status = '☕ Café más fuerte';
-            message = `Estás usando ${diff.toFixed(1)}g más de café. Obtendrás un café con mayor cuerpo.`;
-        } else {
-            status = '☕ Café más suave';
-            message = `Te faltan ${Math.abs(diff).toFixed(1)}g de café. El café será más ligero.`;
-        }
-
-        return {
-            totalWeight: Math.round(totalWeight * 10) / 10,
-            coffeeGrams: Math.round(coffeeGrams * 10) / 10,
-            spoons: Math.round(spoons * 4) / 4,
-            spoonsDisplay: this.formatSpoon(spoons),
-            water_ml: water_ml,
-            ratio: Math.round(ratio * 10) / 10,
-            strength: strength,
-            level: level,
-            color: color,
-            emoji: emoji,
-            status: status,
-            message: message,
-            recommended: {
-                grams: recommended.grams,
-                spoons: recommended.spoons,
-                spoonsDisplay: this.formatSpoon(recommended.spoons)
-            },
-            diff: Math.round(diff * 10) / 10,
-            diffSpoons: Math.round(diffSpoons * 4) / 4,
-            diffSpoonsDisplay: this.formatSpoon(diffSpoons),
-            sugar: this.calculateSugar(water_ml, 'medium'),
-            brand: brand.name,
-            brandId: brand.id
-        };
     }
 };
 
